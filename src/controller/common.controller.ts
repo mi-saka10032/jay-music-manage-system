@@ -41,15 +41,15 @@ export class CommonController {
 
   @ApiResponse({ type: LoginVO })
   @Validate()
-  @Post('/login', { description: '登陆' })
+  @Post('/login', { description: '登录' })
   async login(@Body() body: LoginDTO): Promise<LoginVO> {
     const user = await this.userService.findByUsername(body.username);
     Assert.notNull(user, ErrorCode.UN_ERROR, '用户名或者密码错误');
-    const flag = decrypt(body.password, user.password);
+    const flag: boolean = decrypt(body.password, user.password);
     Assert.isTrue(flag, ErrorCode.UN_ERROR, '用户名或者密码错误');
-    const uc: UserContext = new UserContext(user.id, user.username, user.phoneNum);
+    const uc: UserContext = new UserContext(user.id, user.username);
     const at = await this.jwtUtil.sign({ ...uc });
-    const key = Constant.TOKEM + ':' + user.id + ':' + at;
+    const key = Constant.TOKEN + ':' + user.id + ':' + at;
     const expiresIn = this.jwtConfig.expiresIn;
     this.cacheUtil.set(key, JSON.stringify(uc), 'EX', expiresIn);
     const vo = new LoginVO();

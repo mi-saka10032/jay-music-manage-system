@@ -37,7 +37,7 @@ export class SecurityMiddleware {
       const jwt = await this.jwtUtil.verify(token, { complete: true });
       // jwt中存储的user信息
       const payload = jwt['payload'];
-      const key = Constant.TOKEM + ':' + payload.userId + ':' + token;
+      const key = Constant.TOKEN + ':' + payload.userId + ':' + token;
       const ucStr = await this.cacheUtil.get(key);
       // 服务器端缓存中存储的user信息
       const uc: UserContext = JSON.parse(ucStr);
@@ -53,7 +53,7 @@ export class SecurityMiddleware {
   public match(ctx: Context): boolean {
     const { path } = ctx;
     const { prefix, ignore } = this.securityConfig;
-    const exist = ignore.find((item) => {
+    const exist = ignore.find(item => {
       return item.match(path);
     });
     return path.indexOf(prefix) === 0 && !exist;

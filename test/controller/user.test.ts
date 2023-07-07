@@ -24,10 +24,9 @@ describe('test/controller/user.test.ts', () => {
         user = Object.assign(user, {
           username,
           password: encrypt(password),
-          phoneNum: new Date().getTime().toString(),
           updaterId: 1,
           createrId: 1,
-          regtime: new Date(),
+          regTime: new Date(),
         });
         const o = await userService.save(user);
         console.log(o)
@@ -52,7 +51,6 @@ describe('test/controller/user.test.ts', () => {
     Object.assign(o, {
       username: new Date().getTime().toString(),
       password: new Date().getTime().toString(),
-      phoneNum: new Date().getTime().toString()
     });
     const result = await createHttpRequest(app).post('/api/user/create')
       .set({'Authorization': 'Bearer ' + at})

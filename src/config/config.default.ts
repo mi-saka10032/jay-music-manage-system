@@ -1,5 +1,4 @@
 import { MidwayConfig } from '@midwayjs/core';
-import {User} from '../entity/user'
 
 export default {
   // use for cookie sign key, should change to your own and keep security
@@ -25,9 +24,9 @@ export default {
         database: 'jay_music_manage_system',
         synchronize: true, // 如果第一次使用，不存在表，有同步的需求可以写 true
         logging: true,
-        entities: [User],
-      }
-    }
+        entities: ['**/entity/*{.ts,.js}'],
+      },
+    },
   },
   // redis配置
   redis: {
@@ -55,7 +54,7 @@ export default {
     allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
     credentials: true,
-    origin: (req) => req.headers.origin,
+    origin: req => req.headers.origin,
   },
   // 日志配置
   midwayLogger: {
@@ -69,5 +68,5 @@ export default {
         consoleLevel: 'debug',
       },
     },
-  }
+  },
 } as MidwayConfig;

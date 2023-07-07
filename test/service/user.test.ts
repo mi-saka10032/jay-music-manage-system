@@ -35,10 +35,9 @@ describe('test/service/user.test.ts', () => {
     o = Object.assign(o, {
       username,
       password: encrypt(new Date().getTime().toString()),
-      phoneNum: new Date().getTime().toString(),
       updaterId: 1,
       createrId: 1,
-      regtime: new Date(),
+      regTime: new Date(),
     });
     await service.save(o);
     Assert.notEmpty(o.id, ErrorCode.UN_ERROR, '创建用户失败');
@@ -48,11 +47,8 @@ describe('test/service/user.test.ts', () => {
     Assert.notNull(o, ErrorCode.UN_ERROR, '查询失败');
 
     // update
-    const phoneNum = new Date().getTime().toString();
-    o.phoneNum = phoneNum;
     await service.save(o);
     o = await service.findById(o.id);
-    Assert.isTrue(o.phoneNum===phoneNum, ErrorCode.UN_ERROR, '更新失败');
 
     // page
     const page: Page<User> = await service.page({}, 1, 10);

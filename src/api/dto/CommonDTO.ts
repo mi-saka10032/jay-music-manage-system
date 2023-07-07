@@ -2,7 +2,7 @@ import { Rule, RuleType } from '@midwayjs/validate';
 import { ApiProperty } from '@midwayjs/swagger';
 
 /**
- * 登陆DTO
+ * 登录DTO
  */
 export class LoginDTO {
   @ApiProperty({ example: 'zhangsan', description: '用户名' })

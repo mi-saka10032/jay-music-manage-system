@@ -10,6 +10,7 @@ import { encrypt } from '../utils/PasswordEncoder';
 import { Assert } from '../common/Assert';
 import { ErrorCode } from '../common/ErrorCode';
 import { Page } from '../common/Page';
+import { UserContext } from '../common/UserContext';
 
 @ApiTags(['user'])
 @ApiBearerAuth()
@@ -33,12 +34,11 @@ export class UserController extends BaseController<User> {
   async create(@Body() user: User): Promise<User> {
     Assert.isTrue(user.username !== null, ErrorCode.UN_ERROR, 'username不能为空');
     Assert.isTrue(user.password !== null, ErrorCode.UN_ERROR, 'password不能为空');
-    Assert.isTrue(user.phoneNum !== null, ErrorCode.UN_ERROR, 'phoneNum不能为空');
-    const { userId } = this.ctx.userContext;
+    const userContext: UserContext = this.ctx.userContext;
     Object.assign(user, {
-      regtime: new Date(),
-      updaterId: userId,
-      createrId: userId,
+      regTime: new Date(),
+      updaterId: userContext.userId,
+      createrId: userContext.userId,
       password: encrypt(user.password),
     });
     const newUser = super.create(user);

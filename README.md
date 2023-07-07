@@ -64,7 +64,7 @@ midway-boot是基于阿里巴巴后端框架Midway构建的一套快速启动的
 - http://midway-boot.hiauth.cn/swagger-ui/index.html
 > API接口需要认证，先使用login接口获取accessToken（账号：zhangsan/123456），然后复制，点击Swagger页面中的Authorize按钮，输入这个accessToken,就可以测试其他接口了。
 
-- 登陆接口
+- 登录接口
 <p align="center">
   <img width="900" src="https://earven.oss-cn-shanghai.aliyuncs.com/midway-boot/img/1-1.png">
 </p>
@@ -140,38 +140,9 @@ REDIS_PORT=6379         # 你的redis端口
 >docker run -d --name midway-boot -p 17001:7001 --env-file /opt/.env midway-boot:v1.0
 ```
 
-### Serverless
-
-- 开通阿里云函数服务并设置，参考：
-http://www.midwayjs.org/docs/serverless/serverless_dev
-
-- 调整配置（f.yml）
-```
-# domainName 改为 auto，也可以使用自己配置的域名
-custom:
-  customDomain:
-    domainName: auto
-```
-
-- 发布
-```bash
-# 首次发布，需要使用 npx midway-bin deploy --resetConfig 命令配置客户端
-# 发布到 阿里云 Serverless， 时间较长，需要等待，大概5分钟
-> npm run deploy
-```
-
 - 测试
 
 使用阿里云自动分配的域名访问Swagger进行验证
 
 ## 授权协议
 本项目执行 [MIT](https://github.com/bestaone/midway-boot/blob/main/LICENSE) 协议
-
-## 社区与作者
-<p align="center">
-  <img width="900" src="https://earven.oss-cn-shanghai.aliyuncs.com/midway-boot/img/community_wechat.jpg">
-</p>
-
-
->如果群二维码失效了，请先添加我的微信，然后我拉你入群。
-

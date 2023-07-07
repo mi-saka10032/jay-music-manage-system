@@ -2,6 +2,6 @@
  * 常量
  */
 export class Constant {
-  // 登陆验证时，缓存用户登陆状态KEY的前缀
-  static TOKEM = 'TOKEN';
+  // 登录验证时，缓存用户登录状态KEY的前缀
+  static TOKEN = 'TOKEN';
 }
