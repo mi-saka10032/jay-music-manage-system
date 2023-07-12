@@ -10,7 +10,7 @@ import { ErrorCode } from '../common/ErrorCode';
 import { UserService } from '../service/user.service';
 import { Page } from '../common/Page';
 import { SingerDTO } from '../api/dto/SingerDTO';
-import { SingerListVO } from '../api/vo/SingerListVO';
+import { SingerListVO } from '../api/vo/SingerVO';
 
 @ApiTags(['singer'])
 @ApiBearerAuth()
