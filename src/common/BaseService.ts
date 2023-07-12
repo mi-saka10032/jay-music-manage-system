@@ -1,4 +1,4 @@
-import { In, Repository } from 'typeorm';
+import { ILike, In, Repository } from 'typeorm';
 import { Inject } from '@midwayjs/decorator';
 import { SnowflakeIdGenerate } from '../utils/Snowflake';
 import { BaseEntity } from './BaseEntity';
@@ -44,27 +44,38 @@ export abstract class BaseService<T extends BaseEntity> {
 
   async page(where: FindOptionsWhere<T>, pageNo: number, pageSize: number): Promise<Page<T>> {
     Assert.notNull(where, ErrorCode.UN_ERROR, '查询参数不能为空');
-    Assert.notNull(pageNo != null && pageNo > 0, ErrorCode.UN_ERROR, 'pageNo不能为空');
-    Assert.notNull(pageSize != null && pageSize > 0, ErrorCode.UN_ERROR, 'pageSize不能为空');
-    Assert.notNull(0 < pageSize && pageSize < 1000, ErrorCode.UN_ERROR, '0<pageSize<1000');
-    const skip = (pageNo - 1) * pageSize;
-    const take = pageSize;
+    // Assert.notNull(pageNo != null && pageNo > 0, ErrorCode.UN_ERROR, 'pageNo不能为空');
+    // Assert.notNull(pageSize != null && pageSize > 0, ErrorCode.UN_ERROR, 'pageSize不能为空');
+    const skip = !isNaN(pageNo) ? (pageNo - 1) * pageSize : 0;
+    const take = !isNaN(pageSize) ? pageSize : 10;
+    Assert.notNull(0 < take && take < 1000, ErrorCode.UN_ERROR, '0 < pageSize < 1000');
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const order: FindOptionsOrder<T> = { createTime: 'desc' };
-    const res = await this.getModel().findAndCount({ where, order, skip, take });
-    return Page.build(res[0], res[1], pageNo, pageSize);
+    // 字符串全模糊匹配查询
+    for (const whereKey in where) {
+      const option = where[whereKey];
+      if (typeof option === 'string') {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        where[whereKey] = ILike(`%${option}%`);
+      }
+    }
+    const [res, total]: [T[], number] = await this.getModel().findAndCount({ where, order, skip, take });
+    return Page.build(res, total, pageNo, pageSize);
   }
 
   async limit(where: FindOptionsWhere<T>, skip: number, take: number): Promise<T[]> {
     Assert.notNull(where, ErrorCode.UN_ERROR, '查询参数不能为空');
-    Assert.notNull(skip != null && skip >= 0, ErrorCode.UN_ERROR, 'skip不能为空');
-    Assert.notNull(take != null && take > 0, ErrorCode.UN_ERROR, 'take不能为空');
-    Assert.notNull(0 < take && take < 1000, ErrorCode.UN_ERROR, 'take应大于0，小于1000');
+    // Assert.notNull(skip != null && skip >= 0, ErrorCode.UN_ERROR, 'skip不能为空');
+    // Assert.notNull(take != null && take > 0, ErrorCode.UN_ERROR, 'take不能为空');
+    const newSkip = !isNaN(skip) ? skip : 0;
+    const newTake = !isNaN(take) ? take : 10;
+    Assert.notNull(0 < newTake && newTake < 1000, ErrorCode.UN_ERROR, 'take应大于0，小于1000');
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const order: FindOptionsOrder<T> = { createTime: 'desc' };
-    return this.getModel().find({ where, order, skip, take });
+    return this.getModel().find({ where, order, skip: newSkip, take: newTake });
   }
 
   async findOne(where: FindOptionsWhere<T>): Promise<T> {
