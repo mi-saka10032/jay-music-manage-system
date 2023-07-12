@@ -41,7 +41,7 @@ export class CommonController {
 
   @ApiResponse({ type: LoginVO })
   @Validate()
-  @Post('/login', { description: '登录' })
+  @Post('/login', { description: '公共网关登录' })
   async login(@Body() body: LoginDTO): Promise<LoginVO> {
     const user = await this.userService.findByUsername(body.username);
     Assert.notNull(user, ErrorCode.UN_ERROR, '用户名或者密码错误');
