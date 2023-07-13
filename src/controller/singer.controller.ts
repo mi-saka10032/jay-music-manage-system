@@ -9,13 +9,13 @@ import { Assert } from '../common/Assert';
 import { ErrorCode } from '../common/ErrorCode';
 import { UserService } from '../service/user.service';
 import { Page } from '../common/Page';
-import { SingerDTO } from '../api/dto/SingerDTO';
-import { SingerListVO } from '../api/vo/SingerVO';
+import { NewSingerDTO, SingerDTO } from '../api/dto/SingerDTO';
+import { SingerListVO, SingerVO } from '../api/vo/SingerVO';
 
 @ApiTags(['singer'])
 @ApiBearerAuth()
 @Controller('/api/singer')
-export class SingerController extends BaseController<Singer> {
+export class SingerController extends BaseController<Singer, SingerVO> {
   @Inject()
   ctx: Context;
 
@@ -25,37 +25,36 @@ export class SingerController extends BaseController<Singer> {
   @Inject()
   userService: UserService;
 
-  getService(): BaseService<Singer> {
+  getService(): BaseService<Singer, SingerVO> {
     return this.singerService;
   }
 
-  @ApiResponse({ type: Singer })
+  @ApiResponse({ type: SingerVO })
   @Post('/create', { description: '新增歌手' })
-  async createSinger(@Body() singerDTO: SingerDTO): Promise<Singer> {
-    Assert.isTrue(singerDTO.singerName !== null, ErrorCode.UN_ERROR, 'singerName不能为空');
+  async createSinger(@Body() param: NewSingerDTO): Promise<SingerVO> {
+    Assert.isTrue(param.singerName !== null, ErrorCode.UN_ERROR, 'singerName不能为空');
     const singer: Singer = new Singer();
-    singer.singerName = singerDTO.singerName;
+    singer.singerName = param.singerName;
     this.userService.injectUserid(singer);
-    const newSinger: Singer = await super.create(singer);
-    return Object.assign(newSinger);
+    return super.create(singer);
   }
 
   @ApiResponse({ type: Boolean })
   @Post('/delete', { description: '根据id删除指定歌手' })
-  async delete(@Query('id') id: number): Promise<boolean> {
+  async deleteSingerById(@Query('id') id: number): Promise<boolean> {
     return super.delete(id);
   }
 
   @ApiResponse({ type: SingerListVO })
   @Post('/page', { description: '歌手分页查询带歌手名模糊搜索' })
-  async querySinger(@Body() singerDTO: SingerDTO): Promise<Page<Singer>> {
+  async querySingers(@Body() singerDTO: SingerDTO): Promise<Page<SingerVO>> {
     const map: Map<string, any> = new Map(Object.entries(singerDTO));
     return super.page(map);
   }
 
-  @ApiResponse({ type: Singer })
+  @ApiResponse({ type: SingerVO })
   @Post('/findById', { description: '根据id查询歌手' })
-  async findById(@Query('id') id: number): Promise<Singer> {
-    return super.findById(id);
+  async findSingerById(@Query('id') id: number): Promise<SingerVO> {
+    return await super.findById(id);
   }
 }

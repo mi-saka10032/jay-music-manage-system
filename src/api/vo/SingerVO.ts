@@ -1,17 +1,13 @@
-import { Page } from '../../common/Page';
-import { ApiProperty, Type } from '@midwayjs/swagger';
-import { Singer } from '../../entity/singer';
+import { ApiProperty } from '@midwayjs/swagger';
+import { PageVO } from './PageVO';
+import { BaseVO } from '../../common/BaseEntity';
 
-function wrapperSingerList<T extends Type>(list: T): any {
-  class Wrapper extends Page<T> {
-    @ApiProperty({ type: [list], description: '歌手列表' })
-    list: T[];
+export class SingerVO extends BaseVO {
+  @ApiProperty({ type: Number, description: 'id' })
+  id: number;
 
-    @ApiProperty({ type: Number, description: '总数' })
-    total: number;
-  }
-
-  return Wrapper;
+  @ApiProperty({ type: String, description: '歌手名称' })
+  singerName: string;
 }
 
-export class SingerListVO extends wrapperSingerList(Singer) {}
+export class SingerListVO extends PageVO(SingerVO) {}

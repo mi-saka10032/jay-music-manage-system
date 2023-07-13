@@ -2,17 +2,21 @@
  * 异常码
  */
 export class ErrorCode {
-  static OK = 100000;
+  static OK = 1000;
   /**
-   * 400000-500000 平台异常
+   * 4000 未知异常
    */
-  static SYS_ERROR = 400000;
+  static UN_ERROR = 4000;
   /**
-   * 50000 未知异常
+   * 5000 平台异常
    */
-  static UN_ERROR = 500000;
+  static SYS_ERROR = 5000;
   /**
-   * 60000-69999 基本的业务异常
+   * 6000 基本的业务异常
    */
-  static BIZ_ERROR = 600000;
+  static BIZ_ERROR = 6000;
+  /**
+   * 8000 TOKEN异常
+   */
+  static LOGIN_ERROR = 8000;
 }

@@ -31,7 +31,7 @@ export class SnowflakeIdGenerate {
     }
     if (this.dataCenterId > this.maxDataCenterId || this.dataCenterId < 0) {
       throw new Error(
-        'config.data_center_id must max than 0 and small than maxDataCenterId-[' + this.maxDataCenterId + ']',
+        'config.data_center_id must max than 0 and small than maxDataCenterId-[' + this.maxDataCenterId + ']'
       );
     }
     this.workerId = _workerId;

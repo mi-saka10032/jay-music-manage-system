@@ -21,11 +21,11 @@ dotenv.config();
 
 @Configuration({
   imports: [
-    crossDomain,  // 支持跨域
-    jwt,          // 用于访问凭证签发时进行JWT编码
-    swagger,      // API接口工具
-    redis,        // 缓存
-    orm,          // 数据库操作
+    crossDomain, // 支持跨域
+    jwt, // 用于访问凭证签发时进行JWT编码
+    swagger, // API接口工具
+    redis, // 缓存
+    orm, // 数据库操作
     koa,
     validate,
     {

@@ -1,6 +1,7 @@
 import { Column, CreateDateColumn, PrimaryColumn, UpdateDateColumn } from 'typeorm';
 import { ApiProperty } from '@midwayjs/swagger';
 
+// 所有使用Base封装MVC的Entity实体类都需要继承BaseEntity
 export class BaseEntity {
   @PrimaryColumn({ type: 'bigint' })
   id: number;
@@ -21,3 +22,6 @@ export class BaseEntity {
   @UpdateDateColumn()
   updateTime: Date;
 }
+
+// 所有使用Base封装MVC的VO对象都需要继承BaseVO
+export class BaseVO extends BaseEntity {}

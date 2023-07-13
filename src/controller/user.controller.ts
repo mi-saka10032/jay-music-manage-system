@@ -10,11 +10,12 @@ import { encrypt } from '../utils/PasswordEncoder';
 import { Assert } from '../common/Assert';
 import { ErrorCode } from '../common/ErrorCode';
 import { Page } from '../common/Page';
+import { UserVO } from '../api/vo/LoginVO';
 
 @ApiTags(['user'])
 @ApiBearerAuth()
 @Controller('/api/user')
-export class UserController extends BaseController<User> {
+export class UserController extends BaseController<User, UserVO> {
   @Inject()
   ctx: Context;
 
@@ -24,13 +25,13 @@ export class UserController extends BaseController<User> {
   @Inject()
   cacheUtil: RedisService;
 
-  getService(): BaseService<User> {
+  getService(): BaseService<User, UserVO> {
     return this.userService;
   }
 
-  @ApiResponse({ type: User })
+  @ApiResponse({ type: UserVO })
   @Post('/create', { description: '创建' })
-  async create(@Body() user: User): Promise<User> {
+  async create(@Body() user: User): Promise<UserVO> {
     Assert.isTrue(user.username !== null, ErrorCode.UN_ERROR, 'username不能为空');
     Assert.isTrue(user.password !== null, ErrorCode.UN_ERROR, 'password不能为空');
     Object.assign(user, {
@@ -47,39 +48,33 @@ export class UserController extends BaseController<User> {
     return super.delete(id);
   }
 
-  @ApiResponse({ type: User })
+  @ApiResponse({ type: UserVO })
   @Post('/update', { description: '更新' })
-  async update(@Body() user: User): Promise<User> {
+  async update(@Body() user: User): Promise<UserVO> {
     return super.update(user);
   }
 
-  @ApiResponse({ type: User })
+  @ApiResponse({ type: UserVO })
   @Post('/findById', { description: '通过主键查找' })
-  async findById(@Query('id') id: number): Promise<User> {
+  async findById(@Query('id') id: number): Promise<UserVO> {
     return super.findById(id);
   }
 
-  @ApiResponse({ type: User })
+  @ApiResponse({ type: UserVO })
   @Post('/findByIds', { description: '通过一批主键查找' })
-  async findByIds(@Body('ids') ids: number[]): Promise<User[]> {
+  async findByIds(@Body('ids') ids: number[]): Promise<UserVO[]> {
     return super.findByIds(ids);
   }
 
-  @ApiResponse({ type: User })
+  @ApiResponse({ type: UserVO })
   @Post('/page', { description: '分页查询' })
-  async page(@Body() map: Map<string, any>): Promise<Page<User>> {
+  async page(@Body() map: Map<string, any>): Promise<Page<UserVO>> {
     return super.page(map);
   }
 
-  @ApiResponse({ type: User })
-  @Post('/limit', { description: 'LIMIT查询' })
-  async limit(@Body() map: Map<string, any>) {
-    return super.limit(map);
-  }
-
-  @ApiResponse({ type: User })
+  @ApiResponse({ type: UserVO })
   @Post('/findOne', { description: '查询一个' })
-  async findOne(@Body() user: User): Promise<User> {
+  async findOne(@Body() user: User): Promise<UserVO> {
     return super.findOne(user);
   }
 }
