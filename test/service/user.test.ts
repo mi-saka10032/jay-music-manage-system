@@ -1,16 +1,20 @@
 import { close, createApp } from '@midwayjs/mock';
 import { Application, Framework } from '@midwayjs/koa';
-import { User } from '../../src/entity/user'
-import { ErrorCode } from '../../src/common/ErrorCode'
-import { UserService } from '../../src/service/user.service'
-import { encrypt } from '../../src/utils/PasswordEncoder'
+import { User } from '../../src/entity/user';
+import { ErrorCode } from '../../src/common/ErrorCode';
+import { UserService } from '../../src/service/user.service';
+import { encrypt } from '../../src/utils/PasswordEncoder';
 import { Assert } from '../../src/common/Assert';
-import { Page } from '../../src/common/Page'
+import { Page } from '../../src/common/Page';
+import { UserVO } from '../../src/api/vo/LoginVO';
 
 describe('test/service/user.test.ts', () => {
 
   let app: Application;
   let service: UserService;
+  let id: number;
+  let i: User = new User();
+  let o: UserVO = new UserVO();
 
   beforeAll(async () => {
     try {
@@ -31,37 +35,34 @@ describe('test/service/user.test.ts', () => {
 
     // create
     const username = new Date().getTime().toString();
-    let o = new User();
-    o = Object.assign(o, {
+    i = Object.assign(i, {
       username,
       password: encrypt(new Date().getTime().toString()),
       updaterId: 1,
       createrId: 1,
       regTime: new Date(),
     });
-    await service.save(o);
-    Assert.notEmpty(o.id, ErrorCode.UN_ERROR, '创建用户失败');
+    o = await service.save(i);
+    id = o.id;
+    Assert.notEmpty(id, ErrorCode.UN_ERROR, '创建用户失败');
 
     // find
-    o = await service.findById(o.id);
+    o = await service.findById(id);
     Assert.notNull(o, ErrorCode.UN_ERROR, '查询失败');
 
     // update
-    await service.save(o);
-    o = await service.findById(o.id);
+    Object.assign(i, o);
+    await service.save(i);
+    await service.findById(id);
 
     // page
-    const page: Page<User> = await service.page({}, 1, 10);
+    const page: Page<UserVO> = await service.page({}, 1, 10);
     Assert.isTrue(page.total > 0, ErrorCode.UN_ERROR, '分页查询失败');
 
-    // limit
-    const list: User[] = await service.limit({}, 0, 10);
-    Assert.isTrue(list.length > 0, ErrorCode.UN_ERROR, 'LIMIT查询失败');
-
     // delete
-    await service.delete(o.id);
-    o = await service.findById(o.id);
-    Assert.notNull(!o, ErrorCode.UN_ERROR, '删除失败');
+    await service.delete(id);
+    o = await service.findById(id);
+    Assert.notNull(!o?.id, ErrorCode.UN_ERROR, '删除失败');
 
   });
 

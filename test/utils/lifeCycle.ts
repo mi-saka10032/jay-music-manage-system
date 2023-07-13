@@ -13,36 +13,35 @@ let jestLoginLock = false;
  * @param context 注意app与token必须以对象形式传入，个人试验如果以(app, token)单个参数传入，会构成无效拷贝，test.ts函数内部变量无法生效
  */
 export async function beforeHandler(context: { app: Application, token: string }) {
-  const username = 'zhangsan';
+  const username = 'misaka10032';
   const password = '123456';
-  try {
-    context.app = await createApp<Framework>();
-    // 初始化一个账号
-    const userService = await context.app.getApplicationContext().getAsync<UserService>(UserService);
-    let user: User = await userService.findByUsername(username);
-    if (user == null) {
-      user = new User();
-      user = Object.assign(user, {
-        username,
-        password: encrypt(password),
-        updaterId: 1,
-        createrId: 1,
-        regTime: new Date(),
-      });
-      const o = await userService.save(user);
-      console.log(o);
-    }
-    // 获取一个访问凭证
-    const commonController = await context.app.getApplicationContext().getAsync<CommonController>(CommonController);
-    if (!jestLoginLock) {
-      jestLoginLock = true;
+  if (!jestLoginLock) {
+    jestLoginLock = true;
+    try {
+      context.app = await createApp<Framework>();
+      // 初始化一个账号
+      const userService = await context.app.getApplicationContext().getAsync<UserService>(UserService);
+      let user: User = await userService.findByUsername(username);
+      if (user == null) {
+        user = new User();
+        user = Object.assign(user, {
+          username,
+          password: encrypt(password),
+          updaterId: 1,
+          createrId: 1,
+          regTime: new Date(),
+        });
+        const o = await userService.save(user);
+        console.log(o);
+      }
+      // 获取一个访问凭证
+      const commonController = await context.app.getApplicationContext().getAsync<CommonController>(CommonController);
       const loginVO = await commonController.login({ username, password });
       context.token = loginVO.accessToken;
-      jestLoginLock = false;
+    } catch (err) {
+      console.error('test beforeAll error', err);
+      throw err;
     }
-  } catch (err) {
-    console.error('test beforeAll error', err);
-    throw err;
   }
 }
 

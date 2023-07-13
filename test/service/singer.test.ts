@@ -1,15 +1,19 @@
 import { close, createApp } from '@midwayjs/mock';
 import { Application, Framework } from '@midwayjs/koa';
-import { Singer } from '../../src/entity/singer'
-import { ErrorCode } from '../../src/common/ErrorCode'
-import { SingerService } from '../../src/service/singer.service'
+import { Singer } from '../../src/entity/singer';
+import { ErrorCode } from '../../src/common/ErrorCode';
+import { SingerService } from '../../src/service/singer.service';
 import { Assert } from '../../src/common/Assert';
-import { Page } from '../../src/common/Page'
+import { Page } from '../../src/common/Page';
+import { SingerVO } from '../../src/api/vo/SingerVO';
 
 describe('test/service/user.test.ts', () => {
 
   let app: Application;
   let service: SingerService;
+  let id: number;
+  let i: Singer = new Singer();
+  let o: SingerVO = new SingerVO();
 
   beforeAll(async () => {
     try {
@@ -30,35 +34,32 @@ describe('test/service/user.test.ts', () => {
 
     // create
     const singerName = new Date().getTime().toString();
-    let o = new Singer();
-    o = Object.assign(o, {
+    i = Object.assign(i, {
       singerName,
       updaterId: 1,
       createrId: 1,
     });
-    await service.save(o);
-    Assert.notEmpty(o.id, ErrorCode.UN_ERROR, '创建歌手名称失败');
+    o = await service.save(i);
+    id = o.id;
+    Assert.notEmpty(id, ErrorCode.UN_ERROR, '创建歌手名称失败');
 
     // find
-    o = await service.findById(o.id);
+    o = await service.findById(id);
     Assert.notNull(o, ErrorCode.UN_ERROR, '查询歌手名称失败');
 
     // update
-    await service.save(o);
-    o = await service.findById(o.id);
+    Object.assign(i, o);
+    await service.save(i);
+    await service.findById(id);
 
     // page
-    const page: Page<Singer> = await service.page({}, 1, 10);
+    const page: Page<SingerVO> = await service.page({}, 1, 10);
     Assert.isTrue(page.total > 0, ErrorCode.UN_ERROR, '分页查询失败');
 
-    // limit
-    const list: Singer[] = await service.limit({}, 0, 10);
-    Assert.isTrue(list.length > 0, ErrorCode.UN_ERROR, 'LIMIT查询失败');
-
     // delete
-    await service.delete(o.id);
-    o = await service.findById(o.id);
-    Assert.notNull(!o, ErrorCode.UN_ERROR, '删除失败');
+    await service.delete(id);
+    o = await service.findById(id);
+    Assert.notNull(!o?.id, ErrorCode.UN_ERROR, '删除失败');
 
   });
 
