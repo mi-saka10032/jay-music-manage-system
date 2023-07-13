@@ -18,7 +18,7 @@ export class SingerService extends BaseService<Singer, SingerVO> {
     return new SingerVO();
   }
 
-  getColumns(): string[] | undefined {
+  getColumns(): Array<keyof SingerVO> | undefined {
     return ['id', 'singerName'];
   }
 }

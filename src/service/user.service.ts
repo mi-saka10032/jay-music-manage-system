@@ -19,7 +19,7 @@ export class UserService extends BaseService<User, UserVO> {
     return new UserVO();
   }
 
-  getColumns(): string[] | undefined {
+  getColumns(): Array<keyof UserVO> | undefined {
     return ['id', 'username', 'regTime', 'status'];
   }
 

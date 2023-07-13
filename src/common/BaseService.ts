@@ -22,7 +22,7 @@ export abstract class BaseService<T extends BaseEntity, V extends BaseVO> {
   abstract getVO(): V;
 
   // 获取VO对象指定查询列字段
-  abstract getColumns(): string[] | undefined;
+  abstract getColumns(): Array<keyof V> | undefined;
 
   fuzzyWhere(where: FindOptionsWhere<T>) {
     // 字符串全模糊匹配查询
