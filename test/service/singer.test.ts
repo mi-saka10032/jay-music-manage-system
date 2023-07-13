@@ -1,21 +1,20 @@
 import { close, createApp } from '@midwayjs/mock';
 import { Application, Framework } from '@midwayjs/koa';
-import { User } from '../../src/entity/user'
+import { Singer } from '../../src/entity/singer'
 import { ErrorCode } from '../../src/common/ErrorCode'
-import { UserService } from '../../src/service/user.service'
-import { encrypt } from '../../src/utils/PasswordEncoder'
+import { SingerService } from '../../src/service/singer.service'
 import { Assert } from '../../src/common/Assert';
 import { Page } from '../../src/common/Page'
 
 describe('test/service/user.test.ts', () => {
 
   let app: Application;
-  let service: UserService;
+  let service: SingerService;
 
   beforeAll(async () => {
     try {
       app = await createApp<Framework>();
-      service = await app.getApplicationContext().getAsync<UserService>(UserService);
+      service = await app.getApplicationContext().getAsync<SingerService>(SingerService);
     } catch (err) {
       console.error('test beforeAll error', err);
       throw err;
@@ -30,32 +29,30 @@ describe('test/service/user.test.ts', () => {
   it('test service.crud', async () => {
 
     // create
-    const username = new Date().getTime().toString();
-    let o = new User();
+    const singerName = new Date().getTime().toString();
+    let o = new Singer();
     o = Object.assign(o, {
-      username,
-      password: encrypt(new Date().getTime().toString()),
+      singerName,
       updaterId: 1,
       createrId: 1,
-      regTime: new Date(),
     });
     await service.save(o);
-    Assert.notEmpty(o.id, ErrorCode.UN_ERROR, '创建用户失败');
+    Assert.notEmpty(o.id, ErrorCode.UN_ERROR, '创建歌手名称失败');
 
     // find
     o = await service.findById(o.id);
-    Assert.notNull(o, ErrorCode.UN_ERROR, '查询失败');
+    Assert.notNull(o, ErrorCode.UN_ERROR, '查询歌手名称失败');
 
     // update
     await service.save(o);
     o = await service.findById(o.id);
 
     // page
-    const page: Page<User> = await service.page({}, 1, 10);
+    const page: Page<Singer> = await service.page({}, 1, 10);
     Assert.isTrue(page.total > 0, ErrorCode.UN_ERROR, '分页查询失败');
 
     // limit
-    const list: User[] = await service.limit({}, 0, 10);
+    const list: Singer[] = await service.limit({}, 0, 10);
     Assert.isTrue(list.length > 0, ErrorCode.UN_ERROR, 'LIMIT查询失败');
 
     // delete
