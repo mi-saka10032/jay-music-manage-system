@@ -42,7 +42,6 @@
   "scripts": {
     "start": "NODE_ENV=production node ./bootstrap.js",
     "dev": "cross-env NODE_ENV=local midway-bin dev --ts",
-    "test:origin": "midway-bin test --ts --runInBand",
     "test": "midway-bin test --ts",
     "cov": "midway-bin cov --ts",
     "check": "midway-bin check",

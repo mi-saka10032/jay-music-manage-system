@@ -12,7 +12,7 @@ describe('test/controller/user.test.ts', () => {
     token: '',
   }
 
-  beforeAll(beforeHandler.bind(null, context, 'user'));
+  beforeAll(beforeHandler.bind(null, context));
 
   afterAll(afterHandler.bind(null, context));
 
