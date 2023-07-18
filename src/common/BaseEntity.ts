@@ -22,6 +22,3 @@ export class BaseEntity {
   @UpdateDateColumn()
   updateTime: Date;
 }
-
-// 所有使用Base封装MVC的VO对象都需要继承BaseVO
-export class BaseVO extends BaseEntity {}

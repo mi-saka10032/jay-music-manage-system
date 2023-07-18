@@ -11,10 +11,6 @@ export class Song extends BaseEntity {
   @Column({ length: 100 })
   songName: string;
 
-  @ApiProperty({ description: '歌手/乐队名称' })
-  @Column({ length: 100 })
-  artistName: string;
-
   @ApiProperty({ description: '歌曲时长' })
   @Column({ type: 'int' })
   duration: number;
@@ -26,6 +22,10 @@ export class Song extends BaseEntity {
   @ApiProperty({ description: '播放/下载链接' })
   @Column({ length: 100 })
   musicUrl: string;
+
+  @ApiProperty({ description: '发行日期' })
+  @Column({ nullable: true })
+  publishTime: Date;
 
   // 多首歌曲可收录于一张专辑内，歌曲与专辑为多对一关系
   @ManyToOne(() => Album, (album: Album) => album.songs)

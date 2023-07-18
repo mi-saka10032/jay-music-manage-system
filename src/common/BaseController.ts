@@ -1,5 +1,6 @@
 import { BaseService } from './BaseService';
-import { BaseEntity, BaseVO } from './BaseEntity';
+import { BaseEntity } from './BaseEntity';
+import { BaseVO } from '../api/vo/BaseVO';
 import { Body, Post, Query } from '@midwayjs/decorator';
 import { Assert } from './Assert';
 import { ErrorCode } from './ErrorCode';

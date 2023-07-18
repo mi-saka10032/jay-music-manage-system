@@ -1,5 +1,5 @@
 import { ApiProperty } from '@midwayjs/swagger';
-import { BaseVO } from '../../common/BaseEntity';
+import { BaseVO } from './BaseVO';
 
 /**
  * 登录成功后返回的VO

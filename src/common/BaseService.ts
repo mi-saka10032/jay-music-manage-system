@@ -1,7 +1,8 @@
 import { ILike, In, Repository } from 'typeorm';
 import { Inject } from '@midwayjs/decorator';
 import { SnowflakeIdGenerate } from '../utils/Snowflake';
-import { BaseEntity, BaseVO } from './BaseEntity';
+import { BaseEntity } from './BaseEntity';
+import { BaseVO } from '../api/vo/BaseVO';
 import { Page } from './Page';
 import { Assert } from './Assert';
 import { FindOptionsWhere } from 'typeorm/find-options/FindOptionsWhere';

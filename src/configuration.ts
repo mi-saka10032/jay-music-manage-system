@@ -15,6 +15,7 @@ import * as crossDomain from '@midwayjs/cross-domain';
 import { SecurityMiddleware } from './middleware/security.middleware';
 import * as dotenv from 'dotenv';
 import { ILogger } from '@midwayjs/core';
+import * as upload from '@midwayjs/upload';
 
 // 初始化环境变量
 dotenv.config();
@@ -32,6 +33,7 @@ dotenv.config();
       component: info,
       enabledEnvironment: ['local'],
     },
+    upload,
   ],
   importConfigs: [join(__dirname, './config')],
 })
