@@ -32,7 +32,7 @@ export class SongController extends BaseController<Song, SongVO> {
   axiosService: AxiosService;
 
   /**
-   * @description 该方法包含四部分逻辑
+   * @description 该方法包含四部分逻辑，与db无交互
    * 1. 首先接收上传文件并解析文件内部的音频信息；
    * 2. 与音频信息解析同步进行的还有文件信息上传OSS或者保存本地生成播放/下载链接的步骤；
    * 3. 然后根据音频信息调用网易云api查询其它字段并补全；

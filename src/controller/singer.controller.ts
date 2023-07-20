@@ -55,6 +55,6 @@ export class SingerController extends BaseController<Singer, SingerVO> {
   @ApiResponse({ type: SingerVO })
   @Post('/findById', { description: '根据id查询歌手' })
   async findSingerById(@Query('id') id: number): Promise<SingerVO> {
-    return await super.findById(id);
+    return super.findById(id);
   }
 }
