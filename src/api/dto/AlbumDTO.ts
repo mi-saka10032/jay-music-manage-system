@@ -12,7 +12,7 @@ export class NewAlbumDTO {
   coverUrl?: string;
 }
 
-export class AlbumDTO {
+export class AlbumDTO extends LimitDTO {
   @ApiProperty({ example: '魔杰座', description: '专辑名称' })
   albumName: string;
 
@@ -25,5 +25,3 @@ export class AlbumDTO {
   @ApiProperty({ example: 'string', description: '封面图片链接' })
   coverUrl: string;
 }
-
-export class AlbumListDTO extends LimitDTO {}

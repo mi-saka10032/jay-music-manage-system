@@ -43,7 +43,13 @@ describe('test/controller/album.test.ts', () => {
 
   // page
   it('should POST /api/album/page', async () => {
-    const body = { pageNo: 1, pageSize: 10, albumName: o.albumName }
+    const body = {
+      albumName: o.albumName,
+      startPublishTime: new Date().getTime() - 10000,
+      endPublishTime: new Date().getTime() + 10000,
+      pageNo: 1,
+      pageSize: 10,
+    }
     const result = await createHttpRequest(context.app).post('/api/album/page')
       .set({ 'Authorization': 'Bearer ' + context.token })
       .send(body);

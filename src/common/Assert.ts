@@ -32,6 +32,16 @@ export class Assert {
   }
 
   /**
+   * 非日期断言
+   */
+  static notDate(dateString: any, errorCode: number, errorMsg: string) {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      throw new CommonException(errorCode, errorMsg);
+    }
+  }
+
+  /**
    * 空字符串断言
    */
   static notEmpty(obj: any, errorCode: number, errorMsg: string) {

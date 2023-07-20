@@ -50,8 +50,11 @@ export class AlbumController extends BaseController<Album, AlbumVO> {
   @ApiResponse({ type: AlbumListVO })
   @Post('/page', { description: '专辑分页查询' })
   async queryAlbums(@Body() albumDTO: AlbumDTO): Promise<Page<AlbumVO>> {
-    const map: Map<string, any> = new Map(Object.entries(albumDTO));
-    return super.page(map);
+    const pageNo = albumDTO.pageNo;
+    const pageSize = albumDTO.pageSize;
+    Assert.notNull(pageNo != null && pageNo > 0, ErrorCode.UN_ERROR, 'pageNo不能为空');
+    Assert.notNull(pageSize != null && pageSize > 0, ErrorCode.UN_ERROR, 'pageSize不能为空');
+    return this.albumService.dateRangeQuery(albumDTO, pageNo, pageSize);
   }
 
   @ApiResponse({ type: AlbumVO })

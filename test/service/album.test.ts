@@ -6,6 +6,7 @@ import { close, createApp } from '@midwayjs/mock';
 import { Assert } from '../../src/common/Assert';
 import { ErrorCode } from '../../src/common/ErrorCode';
 import { Page } from '../../src/common/Page';
+import { AlbumDTO } from '../../src/api/dto/AlbumDTO';
 
 describe('test/service/album.test.ts', () => {
 
@@ -57,8 +58,8 @@ describe('test/service/album.test.ts', () => {
     await service.findById(id);
 
     // page
-    const page: Page<AlbumVO> = await service.page({}, 1, 10);
-    console.log('page查询', page);
+    const albumDTO = new AlbumDTO();
+    const page: Page<AlbumVO> = await service.dateRangeQuery(albumDTO, 1, 10);
     Assert.isTrue(page.total > 0, ErrorCode.UN_ERROR, '分页查询失败');
 
     // delete
