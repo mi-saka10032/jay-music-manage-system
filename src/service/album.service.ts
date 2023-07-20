@@ -3,7 +3,7 @@ import { BaseService } from '../common/BaseService';
 import { Album } from '../entity/album';
 import { AlbumVO } from '../api/vo/AlbumVO';
 import { InjectEntityModel } from '@midwayjs/typeorm';
-import { Between, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { FindOptionsWhere } from 'typeorm/find-options/FindOptionsWhere';
 import { Page } from '../common/Page';
 import { Assert } from '../common/Assert';
@@ -32,26 +32,7 @@ export class AlbumService extends BaseService<Album, AlbumVO> {
     Assert.notNull(albumDTO, ErrorCode.UN_ERROR, '查询参数不能为空');
     const where: FindOptionsWhere<Album> = {};
     const { startPublishTime, endPublishTime } = albumDTO;
-    const start = startPublishTime ? 0b0010 : 0b0000;
-    const end = endPublishTime ? 0b0001 : 0b0000;
-    const range = start | end;
-    switch (range) {
-      case 3: {
-        where.publishTime = Between(new Date(startPublishTime), new Date(endPublishTime));
-        break;
-      }
-      case 2: {
-        where.publishTime = MoreThanOrEqual(new Date(startPublishTime));
-        break;
-      }
-      case 1: {
-        where.publishTime = LessThanOrEqual(new Date(endPublishTime));
-        break;
-      }
-      default: {
-        where.publishTime = undefined;
-      }
-    }
+    this.dateRangeWhere(where, 'publishTime', startPublishTime, endPublishTime);
     return super.page(where, pageNo, pageSize);
   }
 }

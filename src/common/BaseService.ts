@@ -1,4 +1,4 @@
-import { ILike, In, Repository } from 'typeorm';
+import { Between, ILike, In, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { Inject } from '@midwayjs/decorator';
 import { SnowflakeIdGenerate } from '../utils/Snowflake';
 import { BaseEntity } from './BaseEntity';
@@ -25,14 +25,38 @@ export abstract class BaseService<T extends BaseEntity, V extends BaseVO> {
   // 获取VO对象指定查询列字段
   abstract getColumns(): Array<keyof V> | undefined;
 
+  // 字符串全模糊匹配查询
   fuzzyWhere(where: FindOptionsWhere<T>) {
-    // 字符串全模糊匹配查询
     for (const whereKey in where) {
       const option = where[whereKey];
       if (typeof option === 'string') {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         where[whereKey] = ILike(`%${option}%`);
+      }
+    }
+  }
+
+  // 日期范围条件匹配查询
+  dateRangeWhere(where: FindOptionsWhere<T>, whereKey: keyof T, startDate: Date | null, endDate: Date | null) {
+    const left: number = startDate ? 0b0010 : 0b0000;
+    const right: number = endDate ? 0b0001 : 0b0000;
+    const range: number = left | right;
+    switch (range) {
+      case 3: {
+        where[whereKey.toString()] = Between(startDate, endDate);
+        break;
+      }
+      case 2: {
+        where[whereKey.toString()] = MoreThanOrEqual(startDate);
+        break;
+      }
+      case 1: {
+        where[whereKey.toString()] = LessThanOrEqual(endDate);
+        break;
+      }
+      default: {
+        where[whereKey.toString()] = undefined;
       }
     }
   }
