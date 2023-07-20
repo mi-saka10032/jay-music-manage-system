@@ -59,7 +59,7 @@ describe('test/service/album.test.ts', () => {
 
     // page
     const albumDTO = new AlbumDTO();
-    const page: Page<AlbumVO> = await service.dateRangeQuery(albumDTO, 1, 10);
+    const page: Page<AlbumVO> = await service.page(albumDTO, 1, 10);
     Assert.isTrue(page.total > 0, ErrorCode.UN_ERROR, '分页查询失败');
 
     // delete

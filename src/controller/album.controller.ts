@@ -50,11 +50,17 @@ export class AlbumController extends BaseController<Album, AlbumVO> {
   @ApiResponse({ type: AlbumListVO })
   @Post('/page', { description: '专辑分页查询' })
   async queryAlbums(@Body() albumDTO: AlbumDTO): Promise<Page<AlbumVO>> {
-    const pageNo = albumDTO.pageNo;
-    const pageSize = albumDTO.pageSize;
+    const { startPublishTime, endPublishTime, pageNo, pageSize } = albumDTO;
+    // 开始或结束日期，一旦存在则需要进行日期格式断言
+    if (startPublishTime) {
+      Assert.notDate(startPublishTime, ErrorCode.UN_ERROR, 'startPublishTime不是一个有效日期');
+    }
+    if (endPublishTime) {
+      Assert.notDate(endPublishTime, ErrorCode.UN_ERROR, 'endPublishTime不是一个有效日期');
+    }
     Assert.notNull(pageNo != null && pageNo > 0, ErrorCode.UN_ERROR, 'pageNo不能为空');
     Assert.notNull(pageSize != null && pageSize > 0, ErrorCode.UN_ERROR, 'pageSize不能为空');
-    return this.albumService.dateRangeQuery(albumDTO, pageNo, pageSize);
+    return this.albumService.page(albumDTO, pageNo, pageSize);
   }
 
   @ApiResponse({ type: AlbumVO })
