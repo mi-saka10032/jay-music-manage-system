@@ -15,6 +15,8 @@ describe('test/service/user.test.ts', () => {
   let id: number;
   let i: User = new User();
   let o: UserVO = new UserVO();
+  const templateUsername = 'misaka10032';
+  const templatePassword = '123456';
 
   beforeAll(async () => {
     try {
@@ -28,6 +30,22 @@ describe('test/service/user.test.ts', () => {
 
   afterAll(async () => {
     await close(app);
+  });
+
+  // 为user表里新增一个用户用于调试，如果存在则结束
+  it('test add one user', async () => {
+    const user = await service.findByUsername(templateUsername);
+    if (!user?.id) {
+      const templateUser: User = new User();
+      Object.assign(templateUser, {
+        username: templateUsername,
+        password: encrypt(templatePassword),
+        updaterId: 1,
+        createrId: 1,
+        regTime: new Date(),
+      });
+      await service.save(templateUser);
+    }
   });
 
   // CRUD
