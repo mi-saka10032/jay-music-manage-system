@@ -117,11 +117,18 @@ export class SongService extends BaseService<Song, SongVO> {
       this.userService.injectUserid(result);
       return result;
     } else {
-      const album: Album = new Album();
-      album.albumName = albumName;
-      this.userService.injectUserid(album);
-      const { id }: AlbumVO = await this.albumService.save(album);
-      album.id = id;
+      let album: Album = new Album();
+      try {
+        album.albumName = albumName;
+        this.userService.injectUserid(album);
+        const { id }: AlbumVO = await this.albumService.save(album);
+        album.id = id;
+      } catch (err) {
+        // 发生异常时捕获并判断是否错误来自Duplicate Key插入，说明已经存在重名albumName的数据，再执行一次查询并返回结果即可
+        Assert.isTrue(String(err).indexOf('Duplicate') > 0, ErrorCode.UN_ERROR, err);
+        album = await this.albumService.model.findOne({ where: { albumName }, relations: ['songs'] });
+        this.userService.injectUserid(album);
+      }
       return album;
     }
   }
@@ -135,11 +142,21 @@ export class SongService extends BaseService<Song, SongVO> {
         this.userService.injectUserid(result);
         singerResult.push(result);
       } else {
-        const singer: Singer = new Singer();
-        singer.singerName = singerName;
-        this.userService.injectUserid(singer);
-        const { id }: SingerVO = await this.singerService.save(singer);
-        singer.id = id;
+        let singer: Singer = new Singer();
+        try {
+          singer.singerName = singerName;
+          this.userService.injectUserid(singer);
+          const { id }: SingerVO = await this.singerService.save(singer);
+          singer.id = id;
+        } catch (err) {
+          // 发生异常时捕获并判断是否错误来自Duplicate Key插入，说明已经存在重名singerName的数据，再执行一次查询和push结果即可
+          Assert.isTrue(String(err).indexOf('Duplicate') > 0, ErrorCode.UN_ERROR, err);
+          singer = await this.singerService.model.findOne({
+            where: { singerName },
+            relations: ['songs'],
+          });
+          this.userService.injectUserid(singer);
+        }
         singerResult.push(singer);
       }
     }
