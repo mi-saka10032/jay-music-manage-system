@@ -4,10 +4,19 @@ import { Song } from '../entity/song';
 import { SongVO } from '../api/vo/SongVO';
 import { InjectEntityModel } from '@midwayjs/typeorm';
 import { Repository } from 'typeorm';
-import { AudioFile, AudioFormatOption } from '../api/dto/SongDTO';
+import { AudioFile, AudioFormatOption, NewSongDTO } from '../api/dto/SongDTO';
 import { createReadStream, ReadStream } from 'fs';
 import { IAudioMetadata, parseNodeStream } from 'music-metadata-browser';
 import { ILogger } from '@midwayjs/core';
+import { OSSService } from '@midwayjs/oss';
+import { Assert } from '../common/Assert';
+import { ErrorCode } from '../common/ErrorCode';
+import { SnowflakeIdGenerate } from '../utils/Snowflake';
+import { AlbumService } from './album.service';
+import { SingerService } from './singer.service';
+import { Album } from '../entity/album';
+import { UserService } from './user.service';
+import { Singer } from '../entity/singer';
 
 @Provide()
 export class SongService extends BaseService<Song, SongVO> {
@@ -29,16 +38,52 @@ export class SongService extends BaseService<Song, SongVO> {
   @Inject()
   logger: ILogger;
 
+  @Inject()
+  ossService: OSSService;
+
+  @Inject()
+  idGenerate: SnowflakeIdGenerate;
+
+  @Inject()
+  albumService: AlbumService;
+
+  @Inject()
+  singerService: SingerService;
+
+  @Inject()
+  userService: UserService;
+
+  /**
+   * @description 解析音频文件的相关信息
+   * @param filepath upload组件将上传的文件做成了临时文件目录的模式，因此使用filepath即可获得相应文件路径
+   */
+  private async analyzeAudioMetadata(filepath: string): Promise<IAudioMetadata> {
+    const stream: ReadStream = createReadStream(filepath);
+    // MusicMetadata自带解析Stream完成后关闭Stream，无需手动关闭ReadStream
+    const metadata: IAudioMetadata = await parseNodeStream(stream);
+    this.logger.info(JSON.stringify(metadata));
+    return metadata;
+  }
+
+  private async uploadOSSService(filepath: string, mimeType: string): Promise<string> {
+    Assert.isTrue(mimeType === 'audio/mpeg', ErrorCode.UN_ERROR, '上传文件必须是音频格式文件');
+    const filename = this.idGenerate.generate();
+    const result = await this.ossService.put(`/music/${String(filename)}.mp3`, filepath);
+    return result.url;
+  }
+
   async analyzeAudioFiles(audioFiles: Array<AudioFile>): Promise<Array<AudioFormatOption>> {
     return Promise.all(
       audioFiles.map(async audioFile => {
-        const { filename, data } = audioFile;
-        const stream: ReadStream = createReadStream(data);
-        // MusicMetadata自带解析Stream完成后关闭Stream，无需手动关闭ReadStream
-        const metadata: IAudioMetadata = await parseNodeStream(stream);
-        this.logger.info(JSON.stringify(metadata));
-        // 已知可返回的信息：歌名、歌曲时长、专辑名、歌手名，其中专辑名和歌手名需要在controller二次查表确认做关联
+        const { filename, data: filepath, mimeType } = audioFile;
+        const [metadata, musicUrl]: [IAudioMetadata, string] = await Promise.all([
+          this.analyzeAudioMetadata(filepath),
+          this.uploadOSSService(filepath, mimeType),
+        ]);
         const audioOption: AudioFormatOption = new AudioFormatOption();
+        // 绑定oss的文件url
+        audioOption.musicUrl = musicUrl;
+        // 已知可返回的信息：歌名、歌曲时长、专辑名、歌手名，其中专辑名和歌手名需要在controller二次查表确认做关联
         audioOption.songName = metadata.common.title ?? ''; // 解析结果歌名title为空则赋空值，下面判断准确度后再默认赋予不带后缀的文件名
         audioOption.album = metadata.common.album ?? ''; // 解析结果专辑名album为空则赋空值，后续二次执行查找
         audioOption.singers = metadata.common.artists ?? []; // 解析结果歌手信息artists为空则赋空数组，后续二次执行查找
@@ -53,5 +98,69 @@ export class SongService extends BaseService<Song, SongVO> {
         return audioOption;
       })
     );
+  }
+
+  private async queryRelatedAlbum(albumName: string): Promise<Album> {
+    const album: Album = new Album();
+    // Album存在则先执行查询，如果有查询结果则注入更新用户id并返回，如果无结果则新建Album再返回
+    const result: Album = await this.albumService.model.findOne({ where: { albumName }, relations: ['songs'] });
+    if (!result?.id) {
+      album.albumName = albumName;
+      const { id }: Album = await this.albumService.model.save(album);
+      album.id = id;
+    }
+    this.userService.injectUserid(album);
+    return album;
+  }
+
+  private async queryRelatedSingers(singers: Array<string>): Promise<Array<Singer>> {
+    const singerResult: Array<Singer> = [];
+    for (const singerName of singers) {
+      const singer: Singer = new Singer();
+      // Singer存在则先执行查询，如果有查询结果则注入更新用户id并返回，如果无结果则新建Singer再返回
+      const result: Singer = await this.singerService.model.findOne({ where: { singerName }, relations: ['songs'] });
+      if (!result?.id) {
+        singer.singerName = singerName;
+        const { id }: Singer = await this.singerService.model.save(singer);
+        singer.id = id;
+      }
+      this.userService.injectUserid(singer);
+      singerResult.push(singer);
+    }
+    return singerResult;
+  }
+
+  async createSingleSong(newSongDTO: NewSongDTO) {
+    const song = new Song();
+    const keys = ['songName', 'duration', 'lyric', 'musicUrl', 'publishTime'];
+    for (const key of keys) {
+      song[key] = newSongDTO[key];
+    }
+    // 新建单曲数据获取id
+    const result: SongVO = await super.save(song);
+    song.id = result.id;
+    const { album: albumName, singers } = newSongDTO;
+    // albumName若存在，则查询获取或新建Album获取实体，更新Album与Song关系
+    if (albumName) {
+      const albumResult: Album = await this.queryRelatedAlbum(albumName);
+      if (albumResult.songs?.length > 0) {
+        albumResult.songs.push(song);
+      } else {
+        albumResult.songs = [song];
+      }
+      await this.albumService.save(albumResult);
+    }
+    // singers若存在，查询获取或新建Singer获取实体，更新Singer与Song关系
+    if (singers?.length > 0) {
+      const singerResult: Array<Singer> = await this.queryRelatedSingers(singers);
+      for (const singer of singerResult) {
+        if (singer.songs?.length > 0) {
+          singer.songs.push(song);
+        } else {
+          singer.songs = [song];
+        }
+        await this.singerService.save(singer);
+      }
+    }
   }
 }

@@ -88,4 +88,14 @@ export default {
     // 仅在匹配路径到 /api/song/upload 的时候去解析 body 中的文件信息
     match: /\/api\/song\/upload/,
   },
+  oss: {
+    // normal oss bucket
+    client: {
+      accessKeyId: process.env.OSS_ACCESSKEY_ID,
+      accessKeySecret: process.env.OSS_ACESSKEY_SECRET,
+      bucket: process.env.OSS_BUCKET_NAME,
+      endpoint: process.env.OSS_ENDPOINT,
+      timeout: '60s',
+    },
+  },
 } as MidwayConfig;

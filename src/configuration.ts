@@ -16,6 +16,7 @@ import { SecurityMiddleware } from './middleware/security.middleware';
 import * as dotenv from 'dotenv';
 import { ILogger } from '@midwayjs/core';
 import * as upload from '@midwayjs/upload';
+import * as oss from '@midwayjs/oss';
 
 // 初始化环境变量
 dotenv.config();
@@ -34,6 +35,7 @@ dotenv.config();
       enabledEnvironment: ['local'],
     },
     upload,
+    oss,
   ],
   importConfigs: [join(__dirname, './config')],
 })

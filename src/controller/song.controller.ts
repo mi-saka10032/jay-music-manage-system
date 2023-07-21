@@ -1,5 +1,5 @@
 import { ApiBearerAuth, ApiTags } from '@midwayjs/swagger';
-import { Controller, Files, Inject, Post } from '@midwayjs/decorator';
+import { Body, Controller, Files, Inject, Post } from '@midwayjs/decorator';
 import { BaseController } from '../common/BaseController';
 import { Song } from '../entity/song';
 import { SongVO } from '../api/vo/SongVO';
@@ -7,9 +7,11 @@ import { Context } from '@midwayjs/koa';
 import { SongService } from '../service/song.service';
 import { BaseService } from '../common/BaseService';
 import { ILogger } from '@midwayjs/core';
-import { AudioFile, AudioFormatOption } from '../api/dto/SongDTO';
+import { AudioFile, AudioFormatOption, NewSongDTO } from '../api/dto/SongDTO';
 import { AxiosService } from '../service/axios.service';
 import { LyricResponse, SingleSong, SingleSongsResponse } from '../common/NeteaseAPIType';
+import { Assert } from '../common/Assert';
+import { ErrorCode } from '../common/ErrorCode';
 
 @ApiTags(['song'])
 @ApiBearerAuth()
@@ -51,6 +53,7 @@ export class SongController extends BaseController<Song, SongVO> {
           const keywords: string = songName + '-' + singerName;
           const response: SingleSongsResponse = await this.axiosService.getMusicsWithKeywords(keywords);
           // 遍历歌曲信息，过滤查找第一个符合条件的歌曲对象
+          let apiId = 0;
           const songs: Array<SingleSong> = response.result.songs;
           for (let i = 0; i < songs.length; i++) {
             const singleSong: SingleSong = songs[i];
@@ -58,19 +61,27 @@ export class SongController extends BaseController<Song, SongVO> {
             const curSingerName: string = singleSong.ar[0].name;
             // 歌曲名称和歌手名称均匹配，返回该歌曲的id，否则继续遍历查找
             if (songName === curSongName && singerName === curSingerName) {
-              audioFormatOption.id = singleSong.id;
+              apiId = singleSong.id;
               audioFormatOption.album = singleSong.al.name ?? '';
               break;
             }
           }
           // 判断id以二次调用axiosService，查找歌词
-          if (audioFormatOption.id) {
-            const response: LyricResponse = await this.axiosService.getLyricWithId(audioFormatOption.id);
+          if (apiId !== 0) {
+            const response: LyricResponse = await this.axiosService.getLyricWithId(apiId);
             audioFormatOption.lyric = response.lrc.lyric;
           }
         }
         return audioFormatOption;
       })
     );
+  }
+
+  @Post('/create', { description: '新增单曲' })
+  async createSingleSong(@Body() newSongDTO: NewSongDTO) {
+    Assert.notNull(newSongDTO.songName, ErrorCode.UN_ERROR, '歌曲名称不能为空');
+    Assert.notNull(newSongDTO.duration, ErrorCode.UN_ERROR, '歌曲时长不能为空');
+    Assert.notNull(newSongDTO.musicUrl, ErrorCode.UN_ERROR, '歌曲链接不能为空');
+    await this.songService.createSingleSong(newSongDTO);
   }
 }

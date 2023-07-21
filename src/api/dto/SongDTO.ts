@@ -31,6 +31,5 @@ export class NewSongDTO {
 }
 
 export class AudioFormatOption extends NewSongDTO {
-  id: number;
   isExact: boolean;
 }
