@@ -65,14 +65,16 @@ export class SongService extends BaseService<Song, SongVO> {
     const stream: ReadStream = createReadStream(filepath);
     // MusicMetadata自带解析Stream完成后关闭Stream，无需手动关闭ReadStream
     const metadata: IAudioMetadata = await parseNodeStream(stream);
-    this.logger.info(JSON.stringify(metadata));
+    this.logger.info('AudioMetadata %j', JSON.stringify(metadata));
     return metadata;
   }
 
   private async uploadOSSService(filepath: string, mimeType: string): Promise<string> {
     Assert.isTrue(mimeType === 'audio/mpeg', ErrorCode.UN_ERROR, '上传文件必须是音频格式文件');
     const filename = this.idGenerate.generate();
+    this.logger.info('startUploadOSS');
     const result = await this.ossService.put(`/music/${String(filename)}.mp3`, filepath);
+    this.logger.info('OSSResult %j', JSON.stringify(result));
     return result.url;
   }
 
