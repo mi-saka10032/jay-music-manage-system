@@ -1,4 +1,4 @@
-import { ApiBearerAuth, ApiTags } from '@midwayjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@midwayjs/swagger';
 import { Body, Controller, Files, Inject, Post } from '@midwayjs/decorator';
 import { BaseController } from '../common/BaseController';
 import { Song } from '../entity/song';
@@ -8,10 +8,10 @@ import { SongService } from '../service/song.service';
 import { BaseService } from '../common/BaseService';
 import { ILogger } from '@midwayjs/core';
 import { AudioFile, AudioFormatOption, NewSongDTO } from '../api/dto/SongDTO';
-import { AxiosService } from '../service/axios.service';
 import { LyricResponse, SingleSong, SingleSongsResponse } from '../common/NeteaseAPIType';
 import { Assert } from '../common/Assert';
 import { ErrorCode } from '../common/ErrorCode';
+import { CloudService } from '../service/cloud.service';
 
 @ApiTags(['song'])
 @ApiBearerAuth()
@@ -31,7 +31,7 @@ export class SongController extends BaseController<Song, SongVO> {
   }
 
   @Inject()
-  axiosService: AxiosService;
+  cloudService: CloudService;
 
   /**
    * @description 该方法包含四部分逻辑，与db无交互
@@ -43,15 +43,18 @@ export class SongController extends BaseController<Song, SongVO> {
    */
   @Post('/upload', { description: '上传音频文件并返回音频解析结果' })
   async uploadAudioFiles(@Files() audioFiles: Array<AudioFile>): Promise<Array<AudioFormatOption>> {
-    const audioFormatOptions: Array<AudioFormatOption> = await this.songService.analyzeAudioFiles(audioFiles);
     return Promise.all(
-      audioFormatOptions.map(async (audioFormatOption: AudioFormatOption): Promise<AudioFormatOption> => {
+      audioFiles.map(async (audioFile: AudioFile): Promise<AudioFormatOption> => {
+        this.logger.info('analysis-start');
+        const audioFormatOption: AudioFormatOption = await this.songService.analyzeAudioFile(audioFile);
+        this.logger.info('analysis&oss-complete');
         const { isExact, songName, singers } = audioFormatOption;
-        const { singerName } = singers[0];
         if (isExact) {
-          // 首次调用axiosService，根据关键词查询单曲信息
+          this.logger.info('neteaseAPI-start');
+          const { singerName } = singers[0];
+          // 首次调用cloudService，根据关键词查询单曲信息
           const keywords: string = songName + '-' + singerName;
-          const response: SingleSongsResponse = await this.axiosService.getMusicsWithKeywords(keywords);
+          const response: SingleSongsResponse = await this.cloudService.getMusicsWithKeywords(keywords);
           // 遍历歌曲信息，过滤查找第一个符合条件的歌曲对象
           let apiId = 0;
           const songs: Array<SingleSong> = response.result.songs;
@@ -71,12 +74,14 @@ export class SongController extends BaseController<Song, SongVO> {
               break;
             }
           }
-          // 判断id以二次调用axiosService，查找歌词
+          // 判断id以二次调用cloudService，查找歌词
           if (apiId !== 0) {
-            const response: LyricResponse = await this.axiosService.getLyricWithId(apiId);
+            const response: LyricResponse = await this.cloudService.getLyricWithId(apiId);
             audioFormatOption.lyric = response.lrc.lyric;
           }
+          this.logger.info('neteaseAPI-complete');
         }
+        this.logger.info('analysis-end');
         return audioFormatOption;
       })
     );
@@ -90,6 +95,7 @@ export class SongController extends BaseController<Song, SongVO> {
     await this.songService.createSingleSong(newSongDTO);
   }
 
+  @ApiBody({ description: '新增单曲的数组类型' })
   @Post('/batchCreate', { description: '批量新增单曲' })
   async batchCreateSingleSongs(@Body() newSongDTOList: Array<NewSongDTO>) {
     await Promise.all(newSongDTOList.map((newSongDTO: NewSongDTO) => this.createSingleSong(newSongDTO)));
