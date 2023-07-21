@@ -7,7 +7,7 @@ import { Song } from './song';
 @Entity('album')
 export class Album extends BaseEntity {
   @ApiProperty({ description: '专辑名称' })
-  @Column({ length: 100 })
+  @Column({ length: 100, unique: true })
   albumName: string;
 
   @ApiProperty({ description: '发行日期' })

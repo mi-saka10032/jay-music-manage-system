@@ -47,7 +47,7 @@ export class SongController extends BaseController<Song, SongVO> {
     return Promise.all(
       audioFormatOptions.map(async (audioFormatOption: AudioFormatOption): Promise<AudioFormatOption> => {
         const { isExact, songName, singers } = audioFormatOption;
-        const singerName: string = singers[0];
+        const { singerName } = singers[0];
         if (isExact) {
           // 首次调用axiosService，根据关键词查询单曲信息
           const keywords: string = songName + '-' + singerName;
@@ -62,9 +62,11 @@ export class SongController extends BaseController<Song, SongVO> {
             // 歌曲名称和歌手名称均匹配，返回该歌曲的id，否则继续遍历查找
             if (songName === curSongName && singerName === curSingerName) {
               apiId = singleSong.id;
-              audioFormatOption.album = singleSong.al.name ?? '';
+              audioFormatOption.album.albumName = singleSong.al.name ?? '';
+              audioFormatOption.album.coverUrl = singleSong.al.picUrl ?? '';
               if (singleSong.publishTime !== 0 && singleSong.publishTime != null) {
                 audioFormatOption.publishTime = new Date(singleSong.publishTime);
+                audioFormatOption.album.publishTime = new Date(singleSong.publishTime);
               }
               break;
             }
@@ -86,5 +88,10 @@ export class SongController extends BaseController<Song, SongVO> {
     Assert.notNull(newSongDTO.duration, ErrorCode.UN_ERROR, '歌曲时长不能为空');
     Assert.notNull(newSongDTO.musicUrl, ErrorCode.UN_ERROR, '歌曲链接不能为空');
     await this.songService.createSingleSong(newSongDTO);
+  }
+
+  @Post('/batchCreate', { description: '批量新增单曲' })
+  async batchCreateSingleSongs(@Body() newSongDTOList: Array<NewSongDTO>) {
+    await Promise.all(newSongDTOList.map((newSongDTO: NewSongDTO) => this.createSingleSong(newSongDTO)));
   }
 }

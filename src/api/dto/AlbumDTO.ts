@@ -6,10 +6,10 @@ export class NewAlbumDTO {
   albumName: string;
 
   @ApiProperty({ example: '2004-1-1', description: '发行日期' })
-  publishTime?: Date;
+  publishTime: Date;
 
   @ApiProperty({ example: 'string', description: '封面图片链接' })
-  coverUrl?: string;
+  coverUrl: string;
 }
 
 export class AlbumDTO extends LimitDTO {

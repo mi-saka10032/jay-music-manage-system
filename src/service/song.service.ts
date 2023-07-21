@@ -19,6 +19,8 @@ import { UserService } from './user.service';
 import { Singer } from '../entity/singer';
 import { SingerVO } from '../api/vo/SingerVO';
 import { AlbumVO } from '../api/vo/AlbumVO';
+import { NewAlbumDTO } from '../api/dto/AlbumDTO';
+import { NewSingerDTO } from '../api/dto/SingerDTO';
 
 @Provide()
 export class SongService extends BaseService<Song, SongVO> {
@@ -87,8 +89,18 @@ export class SongService extends BaseService<Song, SongVO> {
         audioOption.musicUrl = musicUrl;
         // 已知可返回的信息：歌名、歌曲时长、专辑名、歌手名，其中专辑名和歌手名需要在controller二次查表确认做关联
         audioOption.songName = metadata.common.title ?? ''; // 解析结果歌名title为空则赋空值，下面判断准确度后再默认赋予不带后缀的文件名
-        audioOption.album = metadata.common.album ?? ''; // 解析结果专辑名album为空则赋空值，后续二次执行查找
-        audioOption.singers = metadata.common.artists ?? []; // 解析结果歌手信息artists为空则赋空数组，后续二次执行查找
+        audioOption.album = new NewAlbumDTO();
+        audioOption.album.albumName = metadata.common.album ?? ''; // 解析结果专辑名album为空则赋空值，后续二次执行查找
+        // 解析结果歌手信息artists为空则赋空数组，后续二次执行查找
+        if (metadata.common.artists?.length > 0) {
+          audioOption.singers = metadata.common.artists.map((artist: string) => {
+            const singer = new NewSingerDTO();
+            singer.singerName = artist;
+            return singer;
+          });
+        } else {
+          audioOption.singers = [];
+        }
         audioOption.duration = Math.round(metadata.format.duration) ?? 0; // 解析结果时长duration为空则赋0
         audioOption.isExact = true;
         // 当上述四个参数中除了album之外（某些单曲可以没有不附带专辑名）其它任意一个参数为空时说明解析结果并不准确，isExact为false
@@ -118,9 +130,9 @@ export class SongService extends BaseService<Song, SongVO> {
     }
   }
 
-  private async queryRelatedSingers(singers: Array<string>): Promise<Array<Singer>> {
+  private async queryRelatedSingers(singers: Array<NewSingerDTO>): Promise<Array<Singer>> {
     const singerResult: Array<Singer> = [];
-    for (const singerName of singers) {
+    for (const { singerName } of singers) {
       // Singer存在则先执行查询，如果有查询结果则注入更新用户id并返回，如果无结果则新建Singer再返回
       const result: Singer = await this.singerService.model.findOne({ where: { singerName }, relations: ['songs'] });
       if (result?.id) {
@@ -148,10 +160,10 @@ export class SongService extends BaseService<Song, SongVO> {
     // 新建单曲数据获取id
     const result: SongVO = await super.save(song);
     song.id = result.id;
-    const { album: albumName, singers } = newSongDTO;
+    const { album, singers } = newSongDTO;
     // albumName若存在，则查询获取或新建Album获取实体，更新Album与Song关系
-    if (albumName) {
-      const albumResult: Album = await this.queryRelatedAlbum(albumName);
+    if (album.albumName) {
+      const albumResult: Album = await this.queryRelatedAlbum(album.albumName);
       if (albumResult.songs?.length > 0) {
         albumResult.songs.push(song);
       } else {
