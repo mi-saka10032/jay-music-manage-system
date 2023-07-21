@@ -17,6 +17,8 @@ import { SingerService } from './singer.service';
 import { Album } from '../entity/album';
 import { UserService } from './user.service';
 import { Singer } from '../entity/singer';
+import { SingerVO } from '../api/vo/SingerVO';
+import { AlbumVO } from '../api/vo/AlbumVO';
 
 @Provide()
 export class SongService extends BaseService<Song, SongVO> {
@@ -101,31 +103,37 @@ export class SongService extends BaseService<Song, SongVO> {
   }
 
   private async queryRelatedAlbum(albumName: string): Promise<Album> {
-    const album: Album = new Album();
     // Album存在则先执行查询，如果有查询结果则注入更新用户id并返回，如果无结果则新建Album再返回
     const result: Album = await this.albumService.model.findOne({ where: { albumName }, relations: ['songs'] });
-    if (!result?.id) {
+    if (result?.id) {
+      this.userService.injectUserid(result);
+      return result;
+    } else {
+      const album: Album = new Album();
       album.albumName = albumName;
-      const { id }: Album = await this.albumService.model.save(album);
+      this.userService.injectUserid(album);
+      const { id }: AlbumVO = await this.albumService.save(album);
       album.id = id;
+      return album;
     }
-    this.userService.injectUserid(album);
-    return album;
   }
 
   private async queryRelatedSingers(singers: Array<string>): Promise<Array<Singer>> {
     const singerResult: Array<Singer> = [];
     for (const singerName of singers) {
-      const singer: Singer = new Singer();
       // Singer存在则先执行查询，如果有查询结果则注入更新用户id并返回，如果无结果则新建Singer再返回
       const result: Singer = await this.singerService.model.findOne({ where: { singerName }, relations: ['songs'] });
-      if (!result?.id) {
+      if (result?.id) {
+        this.userService.injectUserid(result);
+        singerResult.push(result);
+      } else {
+        const singer: Singer = new Singer();
         singer.singerName = singerName;
-        const { id }: Singer = await this.singerService.model.save(singer);
+        this.userService.injectUserid(singer);
+        const { id }: SingerVO = await this.singerService.save(singer);
         singer.id = id;
+        singerResult.push(singer);
       }
-      this.userService.injectUserid(singer);
-      singerResult.push(singer);
     }
     return singerResult;
   }
@@ -136,6 +144,7 @@ export class SongService extends BaseService<Song, SongVO> {
     for (const key of keys) {
       song[key] = newSongDTO[key];
     }
+    this.userService.injectUserid(song);
     // 新建单曲数据获取id
     const result: SongVO = await super.save(song);
     song.id = result.id;

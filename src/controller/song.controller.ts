@@ -63,6 +63,9 @@ export class SongController extends BaseController<Song, SongVO> {
             if (songName === curSongName && singerName === curSingerName) {
               apiId = singleSong.id;
               audioFormatOption.album = singleSong.al.name ?? '';
+              if (singleSong.publishTime !== 0 && singleSong.publishTime != null) {
+                audioFormatOption.publishTime = new Date(singleSong.publishTime);
+              }
               break;
             }
           }
