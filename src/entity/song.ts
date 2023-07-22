@@ -27,8 +27,8 @@ export class Song extends BaseEntity {
   @Column({ nullable: true })
   publishTime: Date;
 
-  // 多首歌曲可收录于一张专辑内，歌曲与专辑为多对一关系
-  @ManyToOne(() => Album, (album: Album) => album.songs)
+  // 多首歌曲可收录于一张专辑内，歌曲与专辑为多对一关系 SET NULL 表示Album删除不会影响关联Song的删除
+  @ManyToOne(() => Album, (album: Album) => album.songs, { onDelete: 'SET NULL' })
   album: Album;
 
   // 歌曲与歌手多对多关系
