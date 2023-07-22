@@ -113,7 +113,7 @@ export class SongController extends BaseController<Song, SongVO> {
     await this.songService.createSingleSong(newSongDTO);
   }
 
-  @ApiBody({ description: '新增单曲的数组类型' })
+  @ApiBody({ type: NewSongDTO, isArray: true })
   @Post('/batchCreate', { description: '批量新增单曲' })
   async batchCreateSingleSongs(@Body() newSongDTOList: Array<NewSongDTO>) {
     await Promise.all(newSongDTOList.map((newSongDTO: NewSongDTO) => this.createSingleSong(newSongDTO)));

@@ -1,4 +1,4 @@
-import { ApiBearerAuth, ApiResponse, ApiTags } from '@midwayjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@midwayjs/swagger';
 import { BaseController } from '../common/BaseController';
 import { Singer } from '../entity/singer';
 import { Body, Controller, Inject, Post, Query } from '@midwayjs/decorator';
@@ -37,6 +37,12 @@ export class SingerController extends BaseController<Singer, SingerVO> {
     singer.singerName = param.singerName;
     this.userService.injectUserid(singer);
     return super.create(singer);
+  }
+
+  @ApiBody({ type: NewSingerDTO, isArray: true })
+  @Post('/batchCreate', { description: '批量新增歌手' })
+  async batchCreateSinger(@Body() params: Array<NewSingerDTO>): Promise<Array<SingerVO>> {
+    return Promise.all(params.map((param: NewSingerDTO) => this.createSinger(param)));
   }
 
   @ApiResponse({ type: SingerVO })

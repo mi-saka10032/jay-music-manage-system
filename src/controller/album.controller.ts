@@ -1,4 +1,4 @@
-import { ApiBearerAuth, ApiResponse, ApiTags } from '@midwayjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@midwayjs/swagger';
 import { Body, Controller, Inject, Post, Query } from '@midwayjs/decorator';
 import { BaseController } from '../common/BaseController';
 import { Album } from '../entity/album';
@@ -42,6 +42,12 @@ export class AlbumController extends BaseController<Album, AlbumVO> {
     album.coverUrl = param.coverUrl;
     this.userService.injectUserid(album);
     return super.create(album);
+  }
+
+  @ApiBody({ type: NewAlbumDTO, isArray: true })
+  @Post('/batchCreate', { description: '批量新增专辑' })
+  async batchCreateAlbum(@Body() params: Array<NewAlbumDTO>): Promise<Array<AlbumVO>> {
+    return Promise.all(params.map((param: NewAlbumDTO) => this.createAlbum(param)));
   }
 
   @ApiResponse({ type: AlbumVO })
