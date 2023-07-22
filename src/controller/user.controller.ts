@@ -71,10 +71,4 @@ export class UserController extends BaseController<User, UserVO> {
   async page(@Body() map: Map<string, any>): Promise<Page<UserVO>> {
     return super.page(map);
   }
-
-  @ApiResponse({ type: UserVO })
-  @Post('/findOne', { description: '查询一个' })
-  async findOne(@Body() user: User): Promise<UserVO> {
-    return super.findOne(user);
-  }
 }

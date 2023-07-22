@@ -71,16 +71,6 @@ describe('test/controller/user.test.ts', () => {
     expect(result.body.code).toBe(ErrorCode.OK);
   });
 
-  // findOne
-  it('should POST /api/user/findOne', async () => {
-    const body = { username: o.username }
-    const result = await createHttpRequest(context.app).post('/api/user/findOne')
-      .set({ 'Authorization': 'Bearer ' + context.token })
-      .send(body);
-    expect(result.status).toBe(200);
-    expect(result.body.code).toBe(ErrorCode.OK);
-  });
-
   // delete
   it('should POST /api/user/delete', async () => {
     const result = await createHttpRequest(context.app).post('/api/user/delete?id=' + o.id)
