@@ -1,4 +1,13 @@
-import { Between, ILike, In, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+import {
+  Between,
+  FindOptionsSelect,
+  ILike,
+  In,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Repository,
+  SelectQueryBuilder,
+} from 'typeorm';
 import { Inject } from '@midwayjs/decorator';
 import { SnowflakeIdGenerate } from '../utils/Snowflake';
 import { BaseEntity } from './BaseEntity';
@@ -7,7 +16,13 @@ import { Page } from './Page';
 import { Assert } from './Assert';
 import { FindOptionsWhere } from 'typeorm/find-options/FindOptionsWhere';
 import { ErrorCode } from './ErrorCode';
-import { FindOptionsOrder } from 'typeorm/find-options/FindOptionsOrder';
+
+export interface BatchWhereOption {
+  table: string;
+  column: string;
+  value: any | null;
+  condition: 'equal' | 'like' | 'moreThan' | 'lessThan' | 'moreThanOrEqual' | 'lessThanOrEqual';
+}
 
 /**
  * SERVICE的基类
@@ -30,9 +45,7 @@ export abstract class BaseService<T extends BaseEntity, V extends BaseVO> {
     for (const whereKey in where) {
       const option = where[whereKey];
       if (typeof option === 'string') {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        where[whereKey] = ILike(`%${option}%`);
+        where[String(whereKey)] = ILike(`%${option}%`);
       }
     }
   }
@@ -68,6 +81,40 @@ export abstract class BaseService<T extends BaseEntity, V extends BaseVO> {
     }
   }
 
+  builderBatchWhere(builder: SelectQueryBuilder<T>, whereOptions: Array<BatchWhereOption>) {
+    for (const option of whereOptions) {
+      const { table, column, value, condition } = option;
+      if (value != null) {
+        switch (condition) {
+          case 'equal': {
+            builder.andWhere(`${table}.${column} = :${column}`, { [column]: value });
+            break;
+          }
+          case 'like': {
+            builder.andWhere(`${table}.${column} LIKE :${column}`, { [column]: `%${value}%` });
+            break;
+          }
+          case 'lessThan': {
+            builder.andWhere(`${table}.${column} < :${column}`, { [column]: value });
+            break;
+          }
+          case 'lessThanOrEqual': {
+            builder.andWhere(`${table}.${column} <= :${column}`, { [column]: value });
+            break;
+          }
+          case 'moreThan': {
+            builder.andWhere(`${table}.${column} > :${column}`, { [column]: value });
+            break;
+          }
+          case 'moreThanOrEqual': {
+            builder.andWhere(`${table}.${column} >= :${column}`, { [column]: value });
+            break;
+          }
+        }
+      }
+    }
+  }
+
   // 新增或更新指定对象数据
   async save(o: T): Promise<V> {
     Assert.notNull(o, ErrorCode.UN_ERROR, '被保存的对象不能为空');
@@ -89,10 +136,9 @@ export abstract class BaseService<T extends BaseEntity, V extends BaseVO> {
    */
   async findById(id: number): Promise<V> {
     Assert.notNull(id, ErrorCode.UN_ERROR, '查询对象时，ID不能为空');
-    const select = this.getColumns();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const result: T = await this.getModel().findOne({ select, where: { id } });
+    const select = this.getColumns() as unknown as FindOptionsSelect<T>;
+    const where = { id } as FindOptionsWhere<T>;
+    const result: T = await this.getModel().findOne({ select, where });
     const resultVO: V = this.getVO();
     return Object.assign(resultVO, result);
   }
@@ -104,10 +150,9 @@ export abstract class BaseService<T extends BaseEntity, V extends BaseVO> {
   async findByIds(ids: number[]): Promise<V[]> {
     Assert.notNull(ids, ErrorCode.UN_ERROR, '查询对象时，IDS不能为空');
     // 指定VO字段查询列
-    const select = this.getColumns();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const list: T[] = await this.getModel().find({ select, where: { id: In(ids) } });
+    const select = this.getColumns() as unknown as FindOptionsSelect<T>;
+    const where = { id: In(ids) } as FindOptionsWhere<T>;
+    const list: T[] = await this.getModel().find({ select, where });
     const listVO: V[] = new Array<V>();
     return Object.assign(listVO, list);
   }
@@ -125,15 +170,11 @@ export abstract class BaseService<T extends BaseEntity, V extends BaseVO> {
     const skip = !isNaN(pageNo) ? (pageNo - 1) * pageSize : 0;
     const take = !isNaN(pageSize) ? pageSize : 10;
     Assert.notNull(0 < take && take < 1000, ErrorCode.UN_ERROR, '0 < pageSize < 1000');
-    // 创建时间降序
-    const order = { createTime: 'desc' } as FindOptionsOrder<T>;
     // 字符串模糊匹配
     this.fuzzyWhere(where);
     // 指定VO字段查询列
-    const select = this.getColumns();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const [list, total]: [T[], number] = await this.getModel().findAndCount({ select, where, order, skip, take });
+    const select = this.getColumns() as unknown as FindOptionsSelect<T>;
+    const [list, total]: [T[], number] = await this.getModel().findAndCount({ select, where, skip, take });
     const listVO: V[] = new Array<V>();
     Object.assign(listVO, list);
     return Page.build(listVO, total, pageNo, pageSize);
@@ -148,9 +189,7 @@ export abstract class BaseService<T extends BaseEntity, V extends BaseVO> {
     // 字符串模糊匹配
     this.fuzzyWhere(where);
     // 指定VO字段查询列
-    const select = this.getColumns();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    const select = this.getColumns() as unknown as FindOptionsSelect<T>;
     const result: T = await this.getModel().findOne({ select, where });
     const resultVO: V = this.getVO();
     return Object.assign(resultVO, result);

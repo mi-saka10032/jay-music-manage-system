@@ -32,11 +32,19 @@ export class SingerController extends BaseController<Singer, SingerVO> {
   @ApiResponse({ type: SingerVO })
   @Post('/create', { description: '新增歌手' })
   async createSinger(@Body() param: NewSingerDTO): Promise<SingerVO> {
-    Assert.isTrue(param.singerName !== null, ErrorCode.UN_ERROR, 'singerName不能为空');
+    Assert.isTrue(param.singerName != null, ErrorCode.UN_ERROR, 'singerName不能为空');
     const singer: Singer = new Singer();
     singer.singerName = param.singerName;
     this.userService.injectUserid(singer);
     return super.create(singer);
+  }
+
+  @ApiResponse({ type: SingerVO })
+  @Post('/update', { description: '更新歌手信息' })
+  async updateSinger(@Body() param: Singer): Promise<SingerVO> {
+    Assert.isTrue(param.id != null, ErrorCode.UN_ERROR, 'id不能为空');
+    this.userService.injectUserid(param);
+    return super.update(param);
   }
 
   @ApiResponse({ type: Boolean })

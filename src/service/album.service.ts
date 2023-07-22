@@ -3,7 +3,7 @@ import { BaseService } from '../common/BaseService';
 import { Album } from '../entity/album';
 import { AlbumVO } from '../api/vo/AlbumVO';
 import { InjectEntityModel } from '@midwayjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsSelect, Repository } from 'typeorm';
 import { FindOptionsWhere } from 'typeorm/find-options/FindOptionsWhere';
 import { Page } from '../common/Page';
 import { Assert } from '../common/Assert';
@@ -24,15 +24,31 @@ export class AlbumService extends BaseService<Album, AlbumVO> {
   }
 
   getColumns(): Array<keyof AlbumVO> | undefined {
-    return ['id', 'albumName', 'publishTime', 'coverUrl', 'songs'];
+    return ['id', 'albumName', 'publishTime', 'coverUrl'];
   }
 
   // 重写page方法，以实现publishTime范围查找
   async page(albumDTO: AlbumDTO, pageNo: number, pageSize: number): Promise<Page<AlbumVO>> {
     Assert.notNull(albumDTO, ErrorCode.UN_ERROR, '查询参数不能为空');
     const where: FindOptionsWhere<Album> = {};
-    const { startPublishTime, endPublishTime } = albumDTO;
+    const { albumName, coverUrl, startPublishTime, endPublishTime } = albumDTO;
     this.dateRangeWhere(where, 'publishTime', startPublishTime, endPublishTime);
-    return super.page(where, pageNo, pageSize);
+    where.albumName = albumName;
+    where.coverUrl = coverUrl;
+    const skip = !isNaN(pageNo) ? (pageNo - 1) * pageSize : 0;
+    const take = !isNaN(pageSize) ? pageSize : 10;
+    Assert.notNull(0 < take && take < 1000, ErrorCode.UN_ERROR, '0 < pageSize < 1000');
+    this.fuzzyWhere(where);
+    const select = this.getColumns() as unknown as FindOptionsSelect<Album>;
+    const [albumList, total]: [Array<Album>, number] = await this.model.findAndCount({
+      select,
+      where,
+      skip,
+      take,
+      relations: ['songs'],
+    });
+    const albumListVO: Array<AlbumVO> = new Array<AlbumVO>();
+    Object.assign(albumListVO, albumList);
+    return Page.build(albumListVO, total, pageNo, pageSize);
   }
 }

@@ -19,7 +19,7 @@ export class SingerService extends BaseService<Singer, SingerVO> {
   }
 
   getColumns(): Array<keyof SingerVO> | undefined {
-    return ['id', 'singerName'];
+    return ['id', 'singerName', 'coverUrl'];
   }
 
   async delete(id: number) {

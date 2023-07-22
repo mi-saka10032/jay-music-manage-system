@@ -44,6 +44,13 @@ export class AlbumController extends BaseController<Album, AlbumVO> {
     return super.create(album);
   }
 
+  @ApiResponse({ type: AlbumVO })
+  @Post('/update', { description: '更新专辑信息' })
+  async updateAlbum(@Body() param: Album): Promise<AlbumVO> {
+    Assert.isTrue(param.id != null, ErrorCode.UN_ERROR, 'id不能为空');
+    this.userService.injectUserid(param);
+    return super.update(param);
+  }
   @ApiResponse({ type: Boolean })
   @Post('/delete', { description: '根据id删除指定' })
   async deleteAlbumById(@Query('id') id: number): Promise<boolean> {

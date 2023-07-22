@@ -1,13 +1,13 @@
-import { ApiBearerAuth, ApiBody, ApiTags } from '@midwayjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@midwayjs/swagger';
 import { Body, Controller, Files, Inject, Post, Query } from '@midwayjs/decorator';
 import { BaseController } from '../common/BaseController';
 import { Song } from '../entity/song';
-import { SongVO } from '../api/vo/SongVO';
+import { SongListVO, SongVO } from '../api/vo/SongVO';
 import { Context } from '@midwayjs/koa';
 import { SongService } from '../service/song.service';
 import { BaseService } from '../common/BaseService';
 import { ILogger } from '@midwayjs/core';
-import { AudioFile, AudioFormatOption, NewSongDTO } from '../api/dto/SongDTO';
+import { AudioFile, AudioFormatOption, NewSongDTO, SongDTO, UpdateSongDTO } from '../api/dto/SongDTO';
 import { ArtistResponse, LyricResponse, SingleSong, SingleSongsResponse } from '../common/NeteaseAPIType';
 import { Assert } from '../common/Assert';
 import { ErrorCode } from '../common/ErrorCode';
@@ -117,6 +117,34 @@ export class SongController extends BaseController<Song, SongVO> {
   @Post('/batchCreate', { description: '批量新增单曲' })
   async batchCreateSingleSongs(@Body() newSongDTOList: Array<NewSongDTO>) {
     await Promise.all(newSongDTOList.map((newSongDTO: NewSongDTO) => this.createSingleSong(newSongDTO)));
+  }
+
+  @ApiResponse({ type: SongListVO })
+  @Post('/page', { description: '歌曲分页查询' })
+  async querySingleSongs(@Body() songDTO: SongDTO) {
+    const { startPublishTime, endPublishTime, pageNo, pageSize } = songDTO;
+    // 开始或结束日期，一旦存在则需要进行日期格式断言
+    if (startPublishTime) {
+      Assert.notDate(startPublishTime, ErrorCode.UN_ERROR, 'startPublishTime不是一个有效日期');
+      songDTO.startPublishTime = new Date(startPublishTime);
+    }
+    if (endPublishTime) {
+      Assert.notDate(endPublishTime, ErrorCode.UN_ERROR, 'endPublishTime不是一个有效日期');
+      songDTO.endPublishTime = new Date(endPublishTime);
+    }
+    Assert.notNull(pageNo != null && pageNo > 0, ErrorCode.UN_ERROR, 'pageNo不能为空');
+    Assert.notNull(pageSize != null && pageSize > 0, ErrorCode.UN_ERROR, 'pageSize不能为空');
+    return this.songService.page(songDTO, pageNo, pageSize);
+  }
+
+  @Post('/update', { description: '更新单曲' })
+  async updateSingleSongs(@Body() updateSongDTO: UpdateSongDTO) {
+    const { albumId, singerId } = updateSongDTO;
+    delete updateSongDTO.albumId;
+    delete updateSongDTO.singerId;
+    const song: Song = new Song();
+    Object.assign(song, updateSongDTO);
+    return this.songService.update(song, albumId, singerId);
   }
 
   @Post('/delete', { description: '删除单曲' })

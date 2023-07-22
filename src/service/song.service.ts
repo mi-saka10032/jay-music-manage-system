@@ -1,10 +1,10 @@
 import { Inject, Provide } from '@midwayjs/decorator';
-import { BaseService } from '../common/BaseService';
+import { BaseService, BatchWhereOption } from '../common/BaseService';
 import { Song } from '../entity/song';
 import { SongVO } from '../api/vo/SongVO';
 import { InjectEntityModel } from '@midwayjs/typeorm';
-import { Repository } from 'typeorm';
-import { AudioFile, AudioFormatOption, NewSongDTO } from '../api/dto/SongDTO';
+import { Repository, SelectQueryBuilder } from 'typeorm';
+import { AudioFile, AudioFormatOption, NewSongDTO, SongDTO } from '../api/dto/SongDTO';
 import { createReadStream, ReadStream } from 'fs';
 import { IAudioMetadata, parseNodeStream } from 'music-metadata-browser';
 import { ILogger } from '@midwayjs/core';
@@ -21,6 +21,7 @@ import { SingerVO } from '../api/vo/SingerVO';
 import { AlbumVO } from '../api/vo/AlbumVO';
 import { NewAlbumDTO } from '../api/dto/AlbumDTO';
 import { NewSingerDTO } from '../api/dto/SingerDTO';
+import { Page } from '../common/Page';
 
 @Provide()
 export class SongService extends BaseService<Song, SongVO> {
@@ -36,7 +37,7 @@ export class SongService extends BaseService<Song, SongVO> {
   }
 
   getColumns(): Array<keyof SongVO> | undefined {
-    return undefined;
+    return ['id', 'songName', 'duration', 'lyric', 'musicUrl', 'publishTime'];
   }
 
   @Inject()
@@ -191,6 +192,62 @@ export class SongService extends BaseService<Song, SongVO> {
         singerResult.songs = [song];
       }
       await this.singerService.save(singerResult);
+    }
+  }
+
+  async page(songDTO: SongDTO, pageNo: number, pageSize: number): Promise<Page<SongVO>> {
+    Assert.notNull(songDTO, ErrorCode.UN_ERROR, '查询参数不能为空');
+    const { songName, lyric, albumName, singerName, startPublishTime, endPublishTime } = songDTO;
+    const skip = !isNaN(pageNo) ? (pageNo - 1) * pageSize : 0;
+    const take = !isNaN(pageSize) ? pageSize : 10;
+    Assert.notNull(0 < take && take < 1000, ErrorCode.UN_ERROR, '0 < pageSize < 1000');
+    // 设置查询指定列
+    const songSelect: Array<string> = this.getColumns().map((column: string) => `song.${column}`);
+    const albumSelect: Array<string> = this.albumService.getColumns().map((column: string) => `album.${column}`);
+    const singerSelect: Array<string> = this.singerService.getColumns().map((column: string) => `singer.${column}`);
+    const selectOptions: Array<string> = [...songSelect, ...albumSelect, ...singerSelect];
+    // 设置查询条件
+    const whereOptions: Array<BatchWhereOption> = [
+      { table: 'song', column: 'songName', value: songName, condition: 'like' },
+      { table: 'song', column: 'lyric', value: lyric, condition: 'like' },
+      { table: 'song', column: 'publishTime', value: startPublishTime, condition: 'moreThanOrEqual' },
+      { table: 'song', column: 'publishTime', value: endPublishTime, condition: 'lessThanOrEqual' },
+      { table: 'album', column: 'albumName', value: albumName, condition: 'like' },
+      { table: 'singer', column: 'singerName', value: singerName, condition: 'like' },
+    ];
+    // 建立查询池
+    const builder: SelectQueryBuilder<Song> = this.model
+      .createQueryBuilder('song')
+      .leftJoinAndSelect('song.album', 'album')
+      .leftJoinAndSelect('song.singers', 'singer');
+    // 指定列查询
+    builder.select(selectOptions);
+    // 多条件注入
+    this.builderBatchWhere(builder, whereOptions);
+    // offset limit
+    builder.skip(skip);
+    builder.take(take);
+    const [songList, total]: [Array<Song>, number] = await builder.getManyAndCount();
+    const songListVO: Array<SongVO> = new Array<SongVO>();
+    Object.assign(songListVO, songList);
+    return Page.build(songListVO, total, pageNo, pageSize);
+  }
+
+  async update(song: Song, albumId: number | null, singerId: number | null) {
+    Assert.notNull(song.id, ErrorCode.UN_ERROR, 'song.id不能为空');
+    if (albumId) {
+      const album: Album = await this.albumService.model.findOne({ where: { id: albumId }, relations: ['songs'] });
+      if (album?.id) {
+        album.songs.push(song);
+        await this.albumService.save(album);
+      }
+    }
+    if (singerId) {
+      const singer: Singer = await this.singerService.model.findOne({ where: { id: singerId }, relations: ['songs'] });
+      if (singer?.id) {
+        singer.songs.push(song);
+        await this.singerService.save(singer);
+      }
     }
   }
 
