@@ -24,7 +24,7 @@ export class SongVO extends BaseVO {
   @ApiProperty({ type: AlbumVO, description: '专辑名' })
   album: AlbumVO;
 
-  @ApiProperty({ type: 'array', items: { $ref: getSchemaPath(SingerVO) }, description: '专辑名' })
+  @ApiProperty({ type: 'array', items: { $ref: getSchemaPath(SingerVO) }, example: [], description: '专辑名' })
   singers: Array<SingerVO>;
 }
 
