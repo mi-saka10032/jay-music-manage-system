@@ -92,19 +92,17 @@ export class SongService extends BaseService<Song, SongVO> {
     audioOption.album = new NewAlbumDTO();
     audioOption.album.albumName = metadata.common.album ?? ''; // 解析结果专辑名album为空则赋空值，后续二次执行查找
     // 解析结果歌手信息artists为空则赋空数组，后续二次执行查找
+    audioOption.singer = new NewSingerDTO();
     if (metadata.common.artists?.length > 0) {
-      audioOption.singers = metadata.common.artists.map((artist: string) => {
-        const singer = new NewSingerDTO();
-        singer.singerName = artist;
-        return singer;
-      });
+      // 解析出多个歌手的情况下，只取第一个歌手信息，否则解析量过大
+      audioOption.singer.singerName = metadata.common.artists[0];
     } else {
-      audioOption.singers = [];
+      audioOption.singer.singerName = '';
     }
     audioOption.duration = Math.round(metadata.format.duration) ?? 0; // 解析结果时长duration为空则赋0
     audioOption.isExact = true;
     // 当上述四个参数中除了album之外（某些单曲可以没有不附带专辑名）其它任意一个参数为空时说明解析结果并不准确，isExact为false
-    if (audioOption.songName.length === 0 || audioOption.singers.length === 0 || audioOption.duration === 0) {
+    if (audioOption.songName.length === 0 || audioOption.singer.singerName.length === 0 || audioOption.duration === 0) {
       audioOption.isExact = false;
       const lastIndex: number = filename.lastIndexOf('.');
       audioOption.songName = lastIndex > 0 ? filename.substring(0, lastIndex) : filename; // 解析结果不准确 默认取上传文件的不带后缀名的名称
@@ -112,7 +110,8 @@ export class SongService extends BaseService<Song, SongVO> {
     return audioOption;
   }
 
-  private async queryRelatedAlbum(albumName: string): Promise<Album> {
+  private async queryRelatedAlbum(albumDTO: NewAlbumDTO): Promise<Album> {
+    const { albumName, coverUrl, publishTime } = albumDTO;
     // Album存在则先执行查询，如果有查询结果则注入更新用户id并返回，如果无结果则新建Album再返回
     const result: Album = await this.albumService.model.findOne({ where: { albumName }, relations: ['songs'] });
     if (result?.id) {
@@ -122,47 +121,44 @@ export class SongService extends BaseService<Song, SongVO> {
       let album: Album = new Album();
       try {
         album.albumName = albumName;
+        album.coverUrl = coverUrl;
+        album.publishTime = publishTime;
         this.userService.injectUserid(album);
         const { id }: AlbumVO = await this.albumService.save(album);
         album.id = id;
       } catch (err) {
         // 发生异常时捕获并判断是否错误来自Duplicate Key插入，说明已经存在重名albumName的数据，再执行一次查询并返回结果即可
         Assert.isTrue(String(err).indexOf('Duplicate') > 0, ErrorCode.UN_ERROR, err);
-        album = await this.albumService.model.findOne({ where: { albumName }, relations: ['songs'] });
         this.userService.injectUserid(album);
+        album = await this.albumService.model.findOne({ where: { albumName }, relations: ['songs'] });
       }
       return album;
     }
   }
 
-  private async queryRelatedSingers(singers: Array<NewSingerDTO>): Promise<Array<Singer>> {
-    const singerResult: Array<Singer> = [];
-    for (const { singerName } of singers) {
-      // Singer存在则先执行查询，如果有查询结果则注入更新用户id并返回，如果无结果则新建Singer再返回
-      const result: Singer = await this.singerService.model.findOne({ where: { singerName }, relations: ['songs'] });
-      if (result?.id) {
-        this.userService.injectUserid(result);
-        singerResult.push(result);
-      } else {
-        let singer: Singer = new Singer();
-        try {
-          singer.singerName = singerName;
-          this.userService.injectUserid(singer);
-          const { id }: SingerVO = await this.singerService.save(singer);
-          singer.id = id;
-        } catch (err) {
-          // 发生异常时捕获并判断是否错误来自Duplicate Key插入，说明已经存在重名singerName的数据，再执行一次查询和push结果即可
-          Assert.isTrue(String(err).indexOf('Duplicate') > 0, ErrorCode.UN_ERROR, err);
-          singer = await this.singerService.model.findOne({
-            where: { singerName },
-            relations: ['songs'],
-          });
-          this.userService.injectUserid(singer);
-        }
-        singerResult.push(singer);
+  private async queryRelatedSinger(singer: NewSingerDTO): Promise<Singer> {
+    const { singerName, coverUrl } = singer;
+    // Singer存在则先执行查询，如果有查询结果则注入更新用户id并返回，如果无结果则新建Singer再返回
+    const result: Singer = await this.singerService.model.findOne({ where: { singerName }, relations: ['songs'] });
+    if (result?.id) {
+      this.userService.injectUserid(result);
+      return result;
+    } else {
+      let singer: Singer = new Singer();
+      try {
+        singer.singerName = singerName;
+        singer.coverUrl = coverUrl;
+        this.userService.injectUserid(singer);
+        const { id }: SingerVO = await this.singerService.save(singer);
+        singer.id = id;
+      } catch (err) {
+        // 发生异常时捕获并判断是否错误来自Duplicate Key插入，说明已经存在重名singerName的数据，再执行一次查询和push结果即可
+        Assert.isTrue(String(err).indexOf('Duplicate') > 0, ErrorCode.UN_ERROR, err);
+        this.userService.injectUserid(singer);
+        singer = await this.singerService.model.findOne({ where: { singerName }, relations: ['songs'] });
       }
+      return singer;
     }
-    return singerResult;
   }
 
   async createSingleSong(newSongDTO: NewSongDTO) {
@@ -175,10 +171,10 @@ export class SongService extends BaseService<Song, SongVO> {
     // 新建单曲数据获取id
     const result: SongVO = await super.save(song);
     song.id = result.id;
-    const { album, singers } = newSongDTO;
+    const { album, singer } = newSongDTO;
     // albumName若存在，则查询获取或新建Album获取实体，更新Album与Song关系
-    if (album.albumName) {
-      const albumResult: Album = await this.queryRelatedAlbum(album.albumName);
+    if (album.albumName?.length > 0) {
+      const albumResult: Album = await this.queryRelatedAlbum(album);
       if (albumResult.songs?.length > 0) {
         albumResult.songs.push(song);
       } else {
@@ -187,16 +183,14 @@ export class SongService extends BaseService<Song, SongVO> {
       await this.albumService.save(albumResult);
     }
     // singers若存在，查询获取或新建Singer获取实体，更新Singer与Song关系
-    if (singers?.length > 0) {
-      const singerResult: Array<Singer> = await this.queryRelatedSingers(singers);
-      for (const singer of singerResult) {
-        if (singer.songs?.length > 0) {
-          singer.songs.push(song);
-        } else {
-          singer.songs = [song];
-        }
-        await this.singerService.save(singer);
+    if (singer.singerName?.length > 0) {
+      const singerResult: Singer = await this.queryRelatedSinger(singer);
+      if (singerResult.songs?.length > 0) {
+        singerResult.songs.push(song);
+      } else {
+        singerResult.songs = [song];
       }
+      await this.singerService.save(singerResult);
     }
   }
 

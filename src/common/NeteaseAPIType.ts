@@ -39,7 +39,16 @@ export interface LyricResponse extends NeteaseResponse {
   };
 }
 
+export interface ArtistResponse extends NeteaseResponse {
+  data: {
+    artist: {
+      avatar: string;
+    };
+  };
+}
+
 export interface NETEASEAPI {
   getMusicsWithKeywords: (title: string) => Promise<SingleSongsResponse>;
   getLyricWithId: (id: number) => Promise<LyricResponse>;
+  getArtistWithId: (id: number) => Promise<ArtistResponse>;
 }

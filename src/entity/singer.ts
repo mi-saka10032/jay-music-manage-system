@@ -10,6 +10,10 @@ export class Singer extends BaseEntity {
   @Column({ length: 100, unique: true })
   singerName: string;
 
+  @ApiProperty({ description: '封面图片链接' })
+  @Column({ length: 100, nullable: true })
+  coverUrl: string;
+
   // 歌手与歌曲多对多关系，且歌手为关系拥有者
   @ManyToMany(() => Song, (song: Song) => song.singers)
   @JoinTable()

@@ -1,7 +1,13 @@
 import { Inject, Provide } from '@midwayjs/decorator';
-import { LyricResponse, NETEASEAPI, NeteaseResponse, SingleSongsResponse } from '../common/NeteaseAPIType';
+import {
+  ArtistResponse,
+  LyricResponse,
+  NETEASEAPI,
+  NeteaseResponse,
+  SingleSongsResponse,
+} from '../common/NeteaseAPIType';
 import { ILogger } from '@midwayjs/core';
-import { cloudsearch, lyric, Response } from 'NeteaseCloudMusicApi';
+import { cloudsearch, lyric, artist_detail, Response } from 'NeteaseCloudMusicApi';
 import { ErrorCode } from '../common/ErrorCode';
 import { Assert } from '../common/Assert';
 
@@ -27,14 +33,21 @@ export class CloudService implements NETEASEAPI {
       limit: 100,
     });
     CloudService.responseInterceptorHandler(status, body);
-    this.logger.info('NeteaseAPI Response %j', JSON.stringify(body));
+    this.logger.info('NeteaseAPI Music Response %j', JSON.stringify(body));
     return body as SingleSongsResponse;
   }
 
   async getLyricWithId(id: number): Promise<LyricResponse> {
     const { status, body }: Response<NeteaseResponse> = await lyric({ id });
     CloudService.responseInterceptorHandler(status, body);
-    this.logger.info('NeteaseAPI Response %j', JSON.stringify(body));
+    this.logger.info('NeteaseAPI Lyric Response %j', JSON.stringify(body));
     return body as LyricResponse;
+  }
+
+  async getArtistWithId(id: number): Promise<ArtistResponse> {
+    const { status, body }: Response<NeteaseResponse> = await artist_detail({ id });
+    CloudService.responseInterceptorHandler(status, body);
+    this.logger.info('NeteaseAPI Artist Response %j', JSON.stringify(body));
+    return body as ArtistResponse;
   }
 }
