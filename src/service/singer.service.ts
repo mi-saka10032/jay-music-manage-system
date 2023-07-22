@@ -21,4 +21,13 @@ export class SingerService extends BaseService<Singer, SingerVO> {
   getColumns(): Array<keyof SingerVO> | undefined {
     return ['id', 'singerName'];
   }
+
+  async delete(id: number) {
+    const singer: Singer = await this.model.findOne({ where: { id }, relations: ['songs'] });
+    if (singer && singer.songs.length > 0) {
+      singer.songs = [];
+      await super.save(singer);
+    }
+    await super.delete(id);
+  }
 }

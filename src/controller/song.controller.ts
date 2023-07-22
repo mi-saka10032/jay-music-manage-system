@@ -1,5 +1,5 @@
 import { ApiBearerAuth, ApiBody, ApiTags } from '@midwayjs/swagger';
-import { Body, Controller, Files, Inject, Post } from '@midwayjs/decorator';
+import { Body, Controller, Files, Inject, Post, Query } from '@midwayjs/decorator';
 import { BaseController } from '../common/BaseController';
 import { Song } from '../entity/song';
 import { SongVO } from '../api/vo/SongVO';
@@ -99,5 +99,11 @@ export class SongController extends BaseController<Song, SongVO> {
   @Post('/batchCreate', { description: '批量新增单曲' })
   async batchCreateSingleSongs(@Body() newSongDTOList: Array<NewSongDTO>) {
     await Promise.all(newSongDTOList.map((newSongDTO: NewSongDTO) => this.createSingleSong(newSongDTO)));
+  }
+
+  @Post('/delete', { description: '删除单曲' })
+  async delete(@Query('id') id: number): Promise<boolean> {
+    await this.songService.delete(id);
+    return true;
   }
 }

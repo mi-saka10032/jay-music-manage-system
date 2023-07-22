@@ -37,11 +37,18 @@ export abstract class BaseService<T extends BaseEntity, V extends BaseVO> {
     }
   }
 
-  // 日期范围条件匹配查询
+  /**
+   * @description 日期范围条件匹配查询
+   * @param where
+   * @param whereKey
+   * @param startDate
+   * @param endDate
+   */
   dateRangeWhere(where: FindOptionsWhere<T>, whereKey: keyof T, startDate: Date | null, endDate: Date | null) {
     const left: number = startDate ? 0b0010 : 0b0000;
     const right: number = endDate ? 0b0001 : 0b0000;
     const range: number = left | right;
+    // range的结果有4种(3|2|1|0)，分别代表不同的SQL语句
     switch (range) {
       case 3: {
         where[whereKey.toString()] = Between(startDate, endDate);

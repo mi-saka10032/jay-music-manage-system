@@ -199,4 +199,14 @@ export class SongService extends BaseService<Song, SongVO> {
       }
     }
   }
+
+  // 删除Song前先清除Singer的关联否则会报错
+  async delete(id: number) {
+    const song: Song = await this.model.findOne({ where: { id }, relations: ['singers'] });
+    if (song && song.singers.length > 0) {
+      song.singers = [];
+      await super.save(song);
+    }
+    await super.delete(id);
+  }
 }
