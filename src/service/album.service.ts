@@ -28,8 +28,7 @@ export class AlbumService extends BaseService<Album, AlbumVO> {
   }
 
   // 重写page方法，以实现publishTime范围查找
-  async page(albumDTO: AlbumDTO, pageNo: number, pageSize: number): Promise<Page<AlbumVO>> {
-    Assert.notNull(albumDTO, ErrorCode.UN_ERROR, '查询参数不能为空');
+  async queryAlbums(albumDTO: AlbumDTO, pageNo: number, pageSize: number): Promise<Page<AlbumVO>> {
     const where: FindOptionsWhere<Album> = {};
     const { albumName, coverUrl, startPublishTime, endPublishTime } = albumDTO;
     this.dateRangeWhere(where, 'publishTime', startPublishTime, endPublishTime);

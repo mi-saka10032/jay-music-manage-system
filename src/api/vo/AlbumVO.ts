@@ -14,7 +14,7 @@ export class AlbumVO extends BaseVO {
   @ApiProperty({ type: String, description: '封面图片链接' })
   coverUrl: string | null;
 
-  @ApiProperty({ type: 'array', items: { $ref: getSchemaPath(SongVO) }, example: [], description: '歌曲列表' })
+  @ApiProperty({ type: 'array', items: { $ref: () => getSchemaPath(SongVO) }, description: '歌曲列表' })
   songs: Array<SongVO>;
 }
 

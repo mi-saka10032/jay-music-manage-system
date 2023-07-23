@@ -54,7 +54,6 @@ export class AlbumController extends BaseController<Album, AlbumVO> {
   @Post('/update', { description: '更新专辑信息' })
   async updateAlbum(@Body() param: Album): Promise<AlbumVO> {
     Assert.isTrue(param.id != null, ErrorCode.UN_ERROR, 'id不能为空');
-    this.userService.injectUserid(param);
     return super.update(param);
   }
   @ApiResponse({ type: Boolean })
@@ -78,7 +77,7 @@ export class AlbumController extends BaseController<Album, AlbumVO> {
     }
     Assert.notNull(pageNo != null && pageNo > 0, ErrorCode.UN_ERROR, 'pageNo不能为空');
     Assert.notNull(pageSize != null && pageSize > 0, ErrorCode.UN_ERROR, 'pageSize不能为空');
-    return this.albumService.page(albumDTO, pageNo, pageSize);
+    return this.albumService.queryAlbums(albumDTO, pageNo, pageSize);
   }
 
   @ApiResponse({ type: AlbumVO })

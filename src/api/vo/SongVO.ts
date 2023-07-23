@@ -21,10 +21,10 @@ export class SongVO extends BaseVO {
   @ApiProperty({ type: Date, description: '发行日期' })
   publishTime: Date;
 
-  @ApiProperty({ type: AlbumVO, description: '专辑名' })
+  @ApiProperty({ type: () => AlbumVO, description: '专辑名' })
   album: AlbumVO;
 
-  @ApiProperty({ type: 'array', items: { $ref: getSchemaPath(SingerVO) }, example: [], description: '专辑名' })
+  @ApiProperty({ type: 'array', items: { $ref: () => getSchemaPath(SingerVO) }, description: '专辑名' })
   singers: Array<SingerVO>;
 }
 

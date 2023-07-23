@@ -18,7 +18,7 @@ export abstract class BaseController<T extends BaseEntity, V extends BaseVO> {
   @Post('/create')
   async create(@Body() body: T): Promise<V> {
     Assert.notNull(!body.id, ErrorCode.UN_ERROR, '创建对象时ID必须为空');
-    return this.getService().save(body);
+    return this.getService().create(body);
   }
 
   @Post('/delete')
@@ -30,7 +30,7 @@ export abstract class BaseController<T extends BaseEntity, V extends BaseVO> {
   @Post('/update')
   async update(@Body() body: T): Promise<V> {
     Assert.notNull(body.id, ErrorCode.UN_ERROR, '更新对象时ID不能为空');
-    return this.getService().save(body);
+    return this.getService().update(body);
   }
 
   @Post('/findById')

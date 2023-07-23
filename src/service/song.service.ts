@@ -4,7 +4,7 @@ import { Song } from '../entity/song';
 import { SongVO } from '../api/vo/SongVO';
 import { InjectEntityModel } from '@midwayjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
-import { AudioFile, AudioFormatOption, NewSongDTO, SongDTO } from '../api/dto/SongDTO';
+import { AudioFile, AudioFormatOption, NewSongDTO, SongDTO, UpdateSongDTO } from '../api/dto/SongDTO';
 import { createReadStream, ReadStream } from 'fs';
 import { IAudioMetadata, parseNodeStream } from 'music-metadata-browser';
 import { ILogger } from '@midwayjs/core';
@@ -70,8 +70,12 @@ export class SongService extends BaseService<Song, SongVO> {
     return metadata;
   }
 
-  private async uploadOSSService(filepath: string, mimeType: string): Promise<string> {
-    Assert.isTrue(mimeType === 'audio/mpeg', ErrorCode.UN_ERROR, '上传文件必须是音频格式文件');
+  /**
+   * @description 上传OSS服务
+   * @param filepath upload组件将上传的文件做成了临时文件目录的模式，因此使用filepath即可获得相应文件路径
+   * @private
+   */
+  private async uploadOSSService(filepath: string): Promise<string> {
     const filename = this.idGenerate.generate();
     this.logger.info('startUploadOSS');
     const result = await this.ossService.put(`/music/${String(filename)}.mp3`, filepath);
@@ -79,11 +83,18 @@ export class SongService extends BaseService<Song, SongVO> {
     return result.url;
   }
 
+  /**
+   * @description 分析音频文件
+   * 1. 解析音频结果
+   * 2. 上传OSS服务
+   * 3. 返回最终分析结果
+   * @param audioFile upload组件接收上传文件处理形成的格式
+   */
   async analyzeAudioFile(audioFile: AudioFile): Promise<AudioFormatOption> {
-    const { filename, data: filepath, mimeType } = audioFile;
+    const { filename, data: filepath } = audioFile;
     const [metadata, musicUrl]: [IAudioMetadata, string] = await Promise.all([
       this.analyzeAudioMetadata(filepath),
-      this.uploadOSSService(filepath, mimeType),
+      this.uploadOSSService(filepath),
     ]);
     const audioOption: AudioFormatOption = new AudioFormatOption();
     // 绑定oss的文件url
@@ -111,78 +122,97 @@ export class SongService extends BaseService<Song, SongVO> {
     return audioOption;
   }
 
-  private async queryRelatedAlbum(albumDTO: NewAlbumDTO): Promise<Album> {
+  /**
+   * @description 查询并新增关联的Album专辑数据 新增歌曲方法时独有功能，意为新增歌曲时附带新增尚未添加的Album
+   * @param albumDTO NewAlbumDTO
+   */
+  private async queryAndCreateRelatedAlbum(albumDTO: NewAlbumDTO): Promise<Album> {
     const { albumName, coverUrl, publishTime } = albumDTO;
     // Album存在则先执行查询，如果有查询结果则注入更新用户id并返回，如果无结果则新建Album再返回
     const result: Album = await this.albumService.model.findOne({ where: { albumName }, relations: ['songs'] });
     if (result?.id) {
-      this.userService.injectUserid(result);
       return result;
     } else {
       const album: Album = new Album();
       album.albumName = albumName;
       album.coverUrl = coverUrl;
       album.publishTime = publishTime;
-      this.userService.injectUserid(album);
-      const { id }: AlbumVO = await this.albumService.save(album);
+      const { id }: AlbumVO = await this.albumService.create(album);
       album.id = id;
       return album;
     }
   }
 
-  private async queryRelatedSinger(singer: NewSingerDTO): Promise<Singer> {
+  /**
+   * @description 查询并新增关联的Singer歌手数据 新增歌曲方法时独有功能，意为新增歌曲时附带新增尚未添加的Singer
+   * @param singer NewSingerDTO
+   */
+  private async queryAndCreateRelatedSinger(singer: NewSingerDTO): Promise<Singer> {
     const { singerName, coverUrl } = singer;
     // Singer存在则先执行查询，如果有查询结果则注入更新用户id并返回，如果无结果则新建Singer再返回
     const result: Singer = await this.singerService.model.findOne({ where: { singerName }, relations: ['songs'] });
     if (result?.id) {
-      this.userService.injectUserid(result);
       return result;
     } else {
       const singer: Singer = new Singer();
       singer.singerName = singerName;
       singer.coverUrl = coverUrl;
-      this.userService.injectUserid(singer);
-      const { id }: SingerVO = await this.singerService.save(singer);
+      const { id }: SingerVO = await this.singerService.create(singer);
       singer.id = id;
       return singer;
     }
   }
 
-  async createSingleSong(newSongDTO: NewSongDTO) {
-    const song = new Song();
-    const keys = ['songName', 'duration', 'lyric', 'musicUrl', 'publishTime'];
+  /**
+   * @description 新增歌曲 newSongDTO 可能包含多种信息，因此也会去查询关联的Album和Singer并新增尚未添加的相关数据
+   * @param newSongDTO NewSongDTO
+   */
+  async createSong(newSongDTO: NewSongDTO): Promise<SongVO> {
+    const song: Song = new Song();
+    const keys: Array<string> = ['songName', 'duration', 'lyric', 'musicUrl', 'publishTime'];
     for (const key of keys) {
       song[key] = newSongDTO[key];
     }
-    this.userService.injectUserid(song);
     // 新建单曲数据获取id
-    const result: SongVO = await super.save(song);
+    const result: SongVO = await super.create(song);
     song.id = result.id;
     const { album, singer } = newSongDTO;
     // albumName若存在，则查询获取或新建Album获取实体，更新Album与Song关系
     if (album.albumName?.length > 0) {
-      const albumResult: Album = await this.queryRelatedAlbum(album);
+      const albumResult: Album = await this.queryAndCreateRelatedAlbum(album);
       if (albumResult.songs?.length > 0) {
         albumResult.songs.push(song);
       } else {
         albumResult.songs = [song];
       }
-      await this.albumService.save(albumResult);
+      const albumVO: AlbumVO = await this.albumService.update(albumResult);
+      // 去除多余的songs属性
+      delete albumVO.songs;
+      result.album = albumVO;
     }
     // singers若存在，查询获取或新建Singer获取实体，更新Singer与Song关系
     if (singer.singerName?.length > 0) {
-      const singerResult: Singer = await this.queryRelatedSinger(singer);
+      const singerResult: Singer = await this.queryAndCreateRelatedSinger(singer);
       if (singerResult.songs?.length > 0) {
         singerResult.songs.push(song);
       } else {
         singerResult.songs = [song];
       }
-      await this.singerService.save(singerResult);
+      const singerVO: SingerVO = await this.singerService.update(singerResult);
+      // 去除多余的songs属性
+      delete singerVO.songs;
+      result.singers = [singerVO];
     }
+    return result;
   }
 
-  async page(songDTO: SongDTO, pageNo: number, pageSize: number): Promise<Page<SongVO>> {
-    Assert.notNull(songDTO, ErrorCode.UN_ERROR, '查询参数不能为空');
+  /**
+   * @description 歌曲分页查询 涉及到联表操作
+   * @param songDTO SongDTO
+   * @param pageNo number
+   * @param pageSize number
+   */
+  async querySongs(songDTO: SongDTO, pageNo: number, pageSize: number): Promise<Page<SongVO>> {
     const { songName, lyric, albumName, singerName, startPublishTime, endPublishTime } = songDTO;
     const skip = !isNaN(pageNo) ? (pageNo - 1) * pageSize : 0;
     const take = !isNaN(pageSize) ? pageSize : 10;
@@ -213,36 +243,52 @@ export class SongService extends BaseService<Song, SongVO> {
     // offset limit
     builder.skip(skip);
     builder.take(take);
+    // 查询结果转换
     const [songList, total]: [Array<Song>, number] = await builder.getManyAndCount();
     const songListVO: Array<SongVO> = new Array<SongVO>();
     Object.assign(songListVO, songList);
     return Page.build(songListVO, total, pageNo, pageSize);
   }
 
-  async update(song: Song, albumId: number | null, singerId: number | null) {
-    Assert.notNull(song.id, ErrorCode.UN_ERROR, 'song.id不能为空');
+  /**
+   * @description 歌曲更新 涉及联表 relations
+   * @param updateSongDTO UpdateSongDTO
+   */
+  async updateSong(updateSongDTO: UpdateSongDTO): Promise<UpdateSongDTO> {
+    Assert.notNull(updateSongDTO.id, ErrorCode.UN_ERROR, 'song.id不能为空');
+    const song: Song = new Song();
+    const keys: Array<string> = ['id', 'songName', 'duration', 'lyric', 'musicUrl', 'publishTime'];
+    for (const key of keys) {
+      song[key] = updateSongDTO[key];
+    }
+    const { albumId, singerId } = updateSongDTO;
     if (albumId) {
       const album: Album = await this.albumService.model.findOne({ where: { id: albumId }, relations: ['songs'] });
       if (album?.id) {
         album.songs.push(song);
-        await this.albumService.save(album);
+        await this.albumService.update(album);
       }
     }
     if (singerId) {
       const singer: Singer = await this.singerService.model.findOne({ where: { id: singerId }, relations: ['songs'] });
       if (singer?.id) {
         singer.songs.push(song);
-        await this.singerService.save(singer);
+        await this.singerService.update(singer);
       }
     }
+    await super.update(song);
+    return updateSongDTO;
   }
 
-  // 删除Song前先清除Singer的关联否则会报错
-  async delete(id: number) {
+  /**
+   * @description 删除Song前先清除Singer的关联否则会报错
+   * @param id
+   */
+  async deleteSong(id: number) {
     const song: Song = await this.model.findOne({ where: { id }, relations: ['singers'] });
     if (song && song.singers.length > 0) {
       song.singers = [];
-      await super.save(song);
+      await super.update(song);
     }
     await super.delete(id);
   }

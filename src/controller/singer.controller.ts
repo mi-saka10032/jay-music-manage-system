@@ -35,7 +35,6 @@ export class SingerController extends BaseController<Singer, SingerVO> {
     Assert.isTrue(param.singerName != null, ErrorCode.UN_ERROR, 'singerName不能为空');
     const singer: Singer = new Singer();
     singer.singerName = param.singerName;
-    this.userService.injectUserid(singer);
     return super.create(singer);
   }
 
@@ -49,14 +48,14 @@ export class SingerController extends BaseController<Singer, SingerVO> {
   @Post('/update', { description: '更新歌手信息' })
   async updateSinger(@Body() param: Singer): Promise<SingerVO> {
     Assert.isTrue(param.id != null, ErrorCode.UN_ERROR, 'id不能为空');
-    this.userService.injectUserid(param);
     return super.update(param);
   }
 
   @ApiResponse({ type: Boolean })
   @Post('/delete', { description: '根据id删除指定歌手' })
   async deleteSingerById(@Query('id') id: number): Promise<boolean> {
-    return super.delete(id);
+    await this.singerService.deleteSinger(id);
+    return true;
   }
 
   @ApiResponse({ type: SingerListVO })

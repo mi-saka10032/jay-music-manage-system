@@ -12,6 +12,7 @@ import { ArtistResponse, LyricResponse, SingleSong, SingleSongsResponse } from '
 import { Assert } from '../common/Assert';
 import { ErrorCode } from '../common/ErrorCode';
 import { CloudService } from '../service/cloud.service';
+import { Page } from '../common/Page';
 
 @ApiTags(['song'])
 @ApiBearerAuth()
@@ -38,11 +39,15 @@ export class SongController extends BaseController<Song, SongVO> {
    * 1. 首先接收上传文件并解析文件内部的音频信息；
    * 2. 与音频信息解析同步进行的还有文件信息上传OSS或者保存本地生成播放/下载链接的步骤；
    * 3. 然后根据音频信息调用网易云api查询其它字段并补全；
-   * 4. 最后无论数据信息完整与否，统一返回给用户自行判断
+   * 4. 最后无论数据信息完整与否，统一返回给用户处理
    * @param audioFiles midway提供的文件泛型结构，filename为源文件名，data为服务器的临时文件地址
    */
   @Post('/upload', { description: '上传音频文件并返回音频解析结果' })
   async uploadAudioFiles(@Files() audioFiles: Array<AudioFile>): Promise<Array<AudioFormatOption>> {
+    // 限制文件格式为音频格式
+    audioFiles.forEach((audioFile: AudioFile) => {
+      Assert.isTrue(audioFile.mimeType === 'audio/mpeg', ErrorCode.UN_ERROR, '上传文件必须是音频格式文件');
+    });
     return Promise.all(
       audioFiles.map(async (audioFile: AudioFile): Promise<AudioFormatOption> => {
         this.logger.info('analysis-start');
@@ -106,22 +111,22 @@ export class SongController extends BaseController<Song, SongVO> {
   }
 
   @Post('/create', { description: '新增单曲' })
-  async createSingleSong(@Body() newSongDTO: NewSongDTO) {
+  async createSong(@Body() newSongDTO: NewSongDTO): Promise<SongVO> {
     Assert.notNull(newSongDTO.songName, ErrorCode.UN_ERROR, '歌曲名称不能为空');
     Assert.notNull(newSongDTO.duration, ErrorCode.UN_ERROR, '歌曲时长不能为空');
     Assert.notNull(newSongDTO.musicUrl, ErrorCode.UN_ERROR, '歌曲链接不能为空');
-    await this.songService.createSingleSong(newSongDTO);
+    return this.songService.createSong(newSongDTO);
   }
 
   @ApiBody({ type: NewSongDTO, isArray: true })
   @Post('/batchCreate', { description: '批量新增单曲' })
-  async batchCreateSingleSongs(@Body() newSongDTOList: Array<NewSongDTO>) {
-    await Promise.all(newSongDTOList.map((newSongDTO: NewSongDTO) => this.createSingleSong(newSongDTO)));
+  async batchCreateSingleSongs(@Body() newSongDTOList: Array<NewSongDTO>): Promise<Array<SongVO>> {
+    return Promise.all(newSongDTOList.map((newSongDTO: NewSongDTO) => this.createSong(newSongDTO)));
   }
 
   @ApiResponse({ type: SongListVO })
   @Post('/page', { description: '歌曲分页查询' })
-  async querySingleSongs(@Body() songDTO: SongDTO) {
+  async querySingleSongs(@Body() songDTO: SongDTO): Promise<Page<SongVO>> {
     const { startPublishTime, endPublishTime, pageNo, pageSize } = songDTO;
     // 开始或结束日期，一旦存在则需要进行日期格式断言
     if (startPublishTime) {
@@ -134,22 +139,17 @@ export class SongController extends BaseController<Song, SongVO> {
     }
     Assert.notNull(pageNo != null && pageNo > 0, ErrorCode.UN_ERROR, 'pageNo不能为空');
     Assert.notNull(pageSize != null && pageSize > 0, ErrorCode.UN_ERROR, 'pageSize不能为空');
-    return this.songService.page(songDTO, pageNo, pageSize);
+    return this.songService.querySongs(songDTO, pageNo, pageSize);
   }
 
   @Post('/update', { description: '更新单曲' })
-  async updateSingleSongs(@Body() updateSongDTO: UpdateSongDTO) {
-    const { albumId, singerId } = updateSongDTO;
-    delete updateSongDTO.albumId;
-    delete updateSongDTO.singerId;
-    const song: Song = new Song();
-    Object.assign(song, updateSongDTO);
-    return this.songService.update(song, albumId, singerId);
+  async updateSingleSongs(@Body() updateSongDTO: UpdateSongDTO): Promise<UpdateSongDTO> {
+    return this.songService.updateSong(updateSongDTO);
   }
 
   @Post('/delete', { description: '删除单曲' })
   async delete(@Query('id') id: number): Promise<boolean> {
-    await this.songService.delete(id);
+    await this.songService.deleteSong(id);
     return true;
   }
 }

@@ -38,7 +38,6 @@ export class UserController extends BaseController<User, UserVO> {
       regTime: new Date(),
       password: encrypt(user.password),
     });
-    this.userService.injectUserid(user);
     const newUser = super.create(user);
     return Object.assign(newUser, { password: null });
   }

@@ -22,11 +22,11 @@ export class SingerService extends BaseService<Singer, SingerVO> {
     return ['id', 'singerName', 'coverUrl'];
   }
 
-  async delete(id: number) {
+  async deleteSinger(id: number) {
     const singer: Singer = await this.model.findOne({ where: { id }, relations: ['songs'] });
     if (singer && singer.songs.length > 0) {
       singer.songs = [];
-      await super.save(singer);
+      await super.update(singer);
     }
     await super.delete(id);
   }
