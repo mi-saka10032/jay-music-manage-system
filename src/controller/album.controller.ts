@@ -57,7 +57,7 @@ export class AlbumController extends BaseController<Album, AlbumVO> {
     return super.update(param);
   }
   @ApiResponse({ type: Boolean })
-  @Post('/delete', { description: '根据id删除指定' })
+  @Post('/delete', { description: '根据id删除指定专辑' })
   async deleteAlbumById(@Query('id') id: number): Promise<boolean> {
     return super.delete(id);
   }

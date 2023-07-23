@@ -20,10 +20,10 @@ export class NewSongDTO {
   @ApiProperty({ type: String, description: '歌词' })
   lyric: string;
 
-  @ApiProperty({ type: String, description: '播放/下载链接' })
+  @ApiProperty({ type: 'Date', description: '播放/下载链接' })
   musicUrl: string;
 
-  @ApiProperty({ type: Date, description: '歌曲发行日期' })
+  @ApiProperty({ type: 'Date', description: '歌曲发行日期' })
   publishTime: Date;
 
   @ApiProperty({ type: NewAlbumDTO, description: '专辑名' })
@@ -45,10 +45,10 @@ export class SongDTO extends LimitDTO {
   @ApiProperty({ type: String, description: '歌词' })
   lyric: string;
 
-  @ApiProperty({ type: Date, description: '歌曲发行日期范围-起始日期' })
+  @ApiProperty({ type: 'Date', description: '歌曲发行日期范围-起始日期' })
   startPublishTime: Date;
 
-  @ApiProperty({ type: Date, description: '歌曲发行日期范围-结束日期' })
+  @ApiProperty({ type: 'Date', description: '歌曲发行日期范围-结束日期' })
   endPublishTime: Date;
 
   @ApiProperty({ type: String, description: '专辑名' })
@@ -74,12 +74,34 @@ export class UpdateSongDTO {
   @ApiProperty({ type: String, description: '播放/下载链接' })
   musicUrl: string;
 
-  @ApiProperty({ type: Date, description: '歌曲发行日期' })
+  @ApiProperty({ type: 'Date', description: '歌曲发行日期' })
   publishTime: Date;
 
-  @ApiProperty({ required: true, type: Number, description: '专辑名' })
+  @ApiProperty({ type: Number, description: '专辑名' })
   albumId: number;
 
-  @ApiProperty({ required: true, type: Number, description: '歌手名称' })
-  singerId: number;
+  @ApiProperty({ type: 'array', items: { type: 'number' }, description: '歌手名称' })
+  singerIds: Array<number>;
+}
+
+export class Shelve_Album_SongDTO {
+  @ApiProperty({ type: Number, description: '专辑id' })
+  albumId: number;
+
+  @ApiProperty({ type: Number, description: '歌曲id' })
+  songId: number;
+
+  @ApiProperty({ type: Boolean, description: '关联或取关' })
+  shelve: boolean;
+}
+
+export class Shelve_Singer_SongDTO {
+  @ApiProperty({ type: 'array', items: { type: 'number' }, description: '歌手ids' })
+  singerIds: Array<number>;
+
+  @ApiProperty({ type: Number, description: '歌曲id' })
+  songId: number;
+
+  @ApiProperty({ type: Boolean, description: '关联或取关' })
+  shelve: boolean;
 }

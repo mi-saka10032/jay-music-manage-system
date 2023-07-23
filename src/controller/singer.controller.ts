@@ -34,6 +34,7 @@ export class SingerController extends BaseController<Singer, SingerVO> {
   async createSinger(@Body() param: NewSingerDTO): Promise<SingerVO> {
     Assert.isTrue(param.singerName != null, ErrorCode.UN_ERROR, 'singerName不能为空');
     const singer: Singer = new Singer();
+    singer.coverUrl = param.coverUrl;
     singer.singerName = param.singerName;
     return super.create(singer);
   }

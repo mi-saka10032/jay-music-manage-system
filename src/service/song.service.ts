@@ -22,6 +22,7 @@ import { AlbumVO } from '../api/vo/AlbumVO';
 import { NewAlbumDTO } from '../api/dto/AlbumDTO';
 import { NewSingerDTO } from '../api/dto/SingerDTO';
 import { Page } from '../common/Page';
+import { CommonException } from '../common/CommonException';
 
 @Provide()
 export class SongService extends BaseService<Song, SongVO> {
@@ -260,6 +261,61 @@ export class SongService extends BaseService<Song, SongVO> {
   }
 
   /**
+   * @description 将Album与Song实体关联/解除关联
+   * @param albumId number
+   * @param songId number
+   * @param shelve true 关联 | false 解除关联
+   */
+  async shelveAlbum_Song(albumId: number, songId: number, shelve: boolean): Promise<void> {
+    const song: Song = await this.model.findOne({ where: { id: songId }, relations: ['album'] });
+    if (song && song.id) {
+      if (shelve) {
+        const album: Album = new Album();
+        album.id = albumId;
+        song.album = album;
+        await super.update(song);
+      } else {
+        song.album = null;
+        await super.update(song);
+      }
+    } else {
+      throw new CommonException(ErrorCode.UN_ERROR, `Song:${songId}不存在`);
+    }
+  }
+
+  /**
+   * @description 将Singer与Song实体关联/解除关联
+   * @param singerIds Array<number>
+   * @param songId number
+   * @param shelve true 关联 | false 解除关联
+   */
+  async shelveSinger_Song(singerIds: Array<number>, songId: number, shelve = true): Promise<void> {
+    const song: Song = await this.model.findOne({ where: { id: songId }, relations: ['singers'] });
+    if (song && song.id) {
+      // 已存在的singerIds
+      const existSingerIds: Array<number> = song.singers.map((singer: Singer) => Number(singer.id));
+      const newSingerIds: Array<number> = singerIds.filter((id: number) => !existSingerIds.includes(id));
+      const remainSingerIds: Array<number> = singerIds.filter((id: number) => existSingerIds.includes(id));
+      if (shelve && newSingerIds.length > 0) {
+        // 需要关联 shelve:true 并且具有不存在于已有 SingerIds 中的 newSingerIds 方才执行关联更新
+        const singers: Array<Singer> = newSingerIds.map((id: number) => {
+          const singer: Singer = new Singer();
+          singer.id = id;
+          return singer;
+        });
+        song.singers.push(...singers);
+        await super.update(song);
+      } else if (!shelve && remainSingerIds.length > 0) {
+        // 不需要关联 shelve:false 并且具有存在于已有 SingerIds 中的 remainSingerIds 方才执行关联更新 方才解除关联并更新
+        song.singers = song.singers.filter((singer: Singer) => !remainSingerIds.includes(Number(singer.id)));
+        await super.update(song);
+      }
+    } else {
+      throw new CommonException(ErrorCode.UN_ERROR, `Song:${songId}不存在`);
+    }
+  }
+
+  /**
    * @description 歌曲更新 涉及联表 relations
    * @param updateSongDTO UpdateSongDTO
    */
@@ -270,22 +326,18 @@ export class SongService extends BaseService<Song, SongVO> {
     for (const key of keys) {
       song[key] = updateSongDTO[key];
     }
-    const { albumId, singerId } = updateSongDTO;
+    const { id: songId, albumId, singerIds } = updateSongDTO;
+    const updateOperations: Array<Promise<any>> = [];
     if (albumId) {
-      const album: Album = await this.albumService.model.findOne({ where: { id: albumId }, relations: ['songs'] });
-      if (album?.id) {
-        album.songs.push(song);
-        await this.albumService.update(album);
-      }
+      // updateSongDTO存在albumId且不为null 执行albumId查询，将当前Song与之关联
+      updateOperations.push(this.shelveAlbum_Song(albumId, songId, true));
     }
-    if (singerId) {
-      const singer: Singer = await this.singerService.model.findOne({ where: { id: singerId }, relations: ['songs'] });
-      if (singer?.id) {
-        singer.songs.push(song);
-        await this.singerService.update(singer);
-      }
+    if (singerIds?.length > 0) {
+      // updateSongDTO存在singerId且不为null 执行singerId查询，将当前Song与之关联
+      updateOperations.push(this.shelveSinger_Song(singerIds, songId, true));
     }
-    await super.update(song);
+    updateOperations.push(super.update(song));
+    await Promise.all(updateOperations);
     return updateSongDTO;
   }
 

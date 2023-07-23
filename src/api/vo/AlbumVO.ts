@@ -7,10 +7,10 @@ export class BaseAlbumVO extends BaseVO {
   @ApiProperty({ type: String, description: '专辑名称' })
   albumName: string;
 
-  @ApiProperty({ type: Date, description: '发行日期' })
+  @ApiProperty({ type: 'Date', description: '发行日期' })
   publishTime: Date | null;
 
-  @ApiProperty({ type: String, description: '封面图片链接' })
+  @ApiProperty({ type: 'Date', description: '封面图片链接' })
   coverUrl: string | null;
 }
 

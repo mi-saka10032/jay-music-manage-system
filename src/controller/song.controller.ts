@@ -7,7 +7,15 @@ import { Context } from '@midwayjs/koa';
 import { SongService } from '../service/song.service';
 import { BaseService } from '../common/BaseService';
 import { ILogger } from '@midwayjs/core';
-import { AudioFile, AudioFormatOption, NewSongDTO, SongDTO, UpdateSongDTO } from '../api/dto/SongDTO';
+import {
+  AudioFile,
+  AudioFormatOption,
+  NewSongDTO,
+  Shelve_Album_SongDTO,
+  Shelve_Singer_SongDTO,
+  SongDTO,
+  UpdateSongDTO,
+} from '../api/dto/SongDTO';
 import { ArtistResponse, LyricResponse, SingleSong, SingleSongsResponse } from '../common/NeteaseAPIType';
 import { Assert } from '../common/Assert';
 import { ErrorCode } from '../common/ErrorCode';
@@ -145,6 +153,20 @@ export class SongController extends BaseController<Song, SongVO> {
   @Post('/update', { description: '更新单曲' })
   async updateSingleSongs(@Body() updateSongDTO: UpdateSongDTO): Promise<UpdateSongDTO> {
     return this.songService.updateSong(updateSongDTO);
+  }
+
+  @Post('/shelveAlbumId', { description: '关联/取消关联专辑' })
+  async shelveAlbumById(@Body() body: Shelve_Album_SongDTO): Promise<boolean> {
+    const { albumId, songId, shelve } = body;
+    await this.songService.shelveAlbum_Song(albumId, songId, shelve);
+    return true;
+  }
+
+  @Post('/shelveSingerId', { description: '关联/取消关联歌手' })
+  async shelveSingerById(@Body() body: Shelve_Singer_SongDTO): Promise<boolean> {
+    const { singerIds, songId, shelve } = body;
+    await this.songService.shelveSinger_Song(singerIds, songId, shelve);
+    return true;
   }
 
   @Post('/findById', { description: '根据id查询歌曲' })

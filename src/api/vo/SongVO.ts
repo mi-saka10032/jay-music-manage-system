@@ -17,7 +17,7 @@ export class BaseSongVO extends BaseVO {
   @ApiProperty({ type: String, description: '播放/下载链接' })
   musicUrl: string;
 
-  @ApiProperty({ type: Date, description: '发行日期' })
+  @ApiProperty({ type: 'Date', description: '发行日期' })
   publishTime: Date;
 }
 

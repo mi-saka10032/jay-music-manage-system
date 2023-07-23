@@ -70,7 +70,7 @@ export class SingerService extends BaseService<Singer, SingerVO> {
     // 建立查询池，注入id条件查询
     const builder: SelectQueryBuilder<Singer> = this.createBuilderWithWhereOptions(whereOptions);
     const singer: Singer = await builder.getOne();
-    const singerVO = new SingerVO();
+    const singerVO: SingerVO = new SingerVO();
     Object.assign(singerVO, singer);
     return singerVO;
   }
