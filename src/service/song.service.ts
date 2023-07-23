@@ -207,6 +207,27 @@ export class SongService extends BaseService<Song, SongVO> {
   }
 
   /**
+   * @description 建立查询连接池，指定查询列字段，注入查询条件
+   * @param whereOptions BatchWhereOption格式的查询条件，依赖父类的builderBatchWhere方法遍历注入
+   */
+  private createBuilderWithWhereOptions(whereOptions: Array<BatchWhereOption>): SelectQueryBuilder<Song> {
+    // 建立查询池
+    const builder: SelectQueryBuilder<Song> = this.model
+      .createQueryBuilder('song')
+      .leftJoinAndSelect('song.album', 'album')
+      .leftJoinAndSelect('song.singers', 'singer');
+    // 指定列查询
+    const songSelect: Array<string> = this.getColumns().map((column: string) => `song.${column}`);
+    const albumSelect: Array<string> = this.albumService.getColumns().map((column: string) => `album.${column}`);
+    const singerSelect: Array<string> = this.singerService.getColumns().map((column: string) => `singer.${column}`);
+    const selectOptions: Array<string> = [...songSelect, ...albumSelect, ...singerSelect];
+    builder.select(selectOptions);
+    // 条件注入
+    this.builderBatchWhere(builder, whereOptions);
+    return builder;
+  }
+
+  /**
    * @description 歌曲分页查询 涉及到联表操作
    * @param songDTO SongDTO
    * @param pageNo number
@@ -217,11 +238,6 @@ export class SongService extends BaseService<Song, SongVO> {
     const skip = !isNaN(pageNo) ? (pageNo - 1) * pageSize : 0;
     const take = !isNaN(pageSize) ? pageSize : 10;
     Assert.notNull(0 < take && take < 1000, ErrorCode.UN_ERROR, '0 < pageSize < 1000');
-    // 设置查询指定列
-    const songSelect: Array<string> = this.getColumns().map((column: string) => `song.${column}`);
-    const albumSelect: Array<string> = this.albumService.getColumns().map((column: string) => `album.${column}`);
-    const singerSelect: Array<string> = this.singerService.getColumns().map((column: string) => `singer.${column}`);
-    const selectOptions: Array<string> = [...songSelect, ...albumSelect, ...singerSelect];
     // 设置查询条件
     const whereOptions: Array<BatchWhereOption> = [
       { table: 'song', column: 'songName', value: songName, condition: 'like' },
@@ -231,15 +247,8 @@ export class SongService extends BaseService<Song, SongVO> {
       { table: 'album', column: 'albumName', value: albumName, condition: 'like' },
       { table: 'singer', column: 'singerName', value: singerName, condition: 'like' },
     ];
-    // 建立查询池
-    const builder: SelectQueryBuilder<Song> = this.model
-      .createQueryBuilder('song')
-      .leftJoinAndSelect('song.album', 'album')
-      .leftJoinAndSelect('song.singers', 'singer');
-    // 指定列查询
-    builder.select(selectOptions);
-    // 多条件注入
-    this.builderBatchWhere(builder, whereOptions);
+    // 建立查询池、指定列查询、where条件注入
+    const builder: SelectQueryBuilder<Song> = this.createBuilderWithWhereOptions(whereOptions);
     // offset limit
     builder.skip(skip);
     builder.take(take);
@@ -291,5 +300,15 @@ export class SongService extends BaseService<Song, SongVO> {
       await super.update(song);
     }
     await super.delete(id);
+  }
+
+  async findSongById(id: number): Promise<SongVO> {
+    const whereOptions: Array<BatchWhereOption> = [{ table: 'song', column: 'id', value: id, condition: 'equal' }];
+    // 建立查询池
+    const builder: SelectQueryBuilder<Song> = this.createBuilderWithWhereOptions(whereOptions);
+    const song: Song = await builder.getOne();
+    const songVO: SongVO = new SongVO();
+    Object.assign(songVO, song);
+    return songVO;
   }
 }

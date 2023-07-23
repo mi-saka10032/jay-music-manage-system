@@ -49,7 +49,7 @@ export abstract class BaseService<T extends BaseEntity, V extends BaseVO> {
   abstract getColumns(): Array<keyof V>;
 
   /**
-   * @description 字符串全模糊匹配查询
+   * @description 字符串全模糊匹配查询 为typeORM的快捷API(find系列)补全where对象
    * @param where typeORM的条件对象
    */
   public fuzzyWhere(where: FindOptionsWhere<T>) {
@@ -62,7 +62,7 @@ export abstract class BaseService<T extends BaseEntity, V extends BaseVO> {
   }
 
   /**
-   * @description 日期范围条件匹配查询
+   * @description 日期范围条件匹配查询 为typeORM的快捷API(find系列)补全where对象
    * @param where
    * @param whereKey Entity的键值名
    * @param startDate 起始日期
@@ -93,7 +93,7 @@ export abstract class BaseService<T extends BaseEntity, V extends BaseVO> {
   }
 
   /**
-   * @description createQueryBuilder模式下批量where条件的插值方法
+   * @description createQueryBuilder模式下批量where条件的插值方法 typeORM的createQueryBuilder模式专用
    * @param builder createQueryBuilder返回值
    * @param whereOptions Array<{ table:表名, column:列名, value:列值(可能为空), condition:多条件判断 }>
    */

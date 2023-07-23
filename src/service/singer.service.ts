@@ -29,14 +29,20 @@ export class SingerService extends BaseService<Singer, SingerVO> {
   songService: SongService;
 
   /**
-   * @description Singer的指定列查询：指定Singer和其LeftJoin的Song的字段
-   * @param builder
+   * @description 建立查询连接池，指定查询列字段，注入查询条件
+   * @param whereOptions BatchWhereOption格式的查询条件，依赖父类的builderBatchWhere方法遍历注入
    */
-  private specifyJoinColumns(builder: SelectQueryBuilder<Singer>) {
+  private createBuilderWithWhereOptions(whereOptions: Array<BatchWhereOption>): SelectQueryBuilder<Singer> {
+    const builder: SelectQueryBuilder<Singer> = this.model
+      .createQueryBuilder('singer')
+      .leftJoinAndSelect('singer.songs', 'song');
     const singerSelect: Array<string> = this.getColumns().map((column: string) => `singer.${column}`);
     const songSelect: Array<string> = this.songService.getColumns().map((column: string) => `song.${column}`);
     const selectOptions: Array<string> = [...singerSelect, ...songSelect];
     builder.select(selectOptions);
+    // 条件注入
+    this.builderBatchWhere(builder, whereOptions);
+    return builder;
   }
 
   async querySinger(singerDTO: SingerDTO, pageNo: number, pageSize: number): Promise<Page<SingerVO>> {
@@ -47,13 +53,8 @@ export class SingerService extends BaseService<Singer, SingerVO> {
       { table: 'singer', column: 'singerName', value: singerName, condition: 'like' },
       { table: 'singer', column: 'coverUrl', value: coverUrl, condition: 'like' },
     ];
-    const builder: SelectQueryBuilder<Singer> = this.model
-      .createQueryBuilder('singer')
-      .leftJoinAndSelect('singer.songs', 'song');
-    // 指定列查询
-    this.specifyJoinColumns(builder);
-    // 条件注入
-    this.builderBatchWhere(builder, whereOptions);
+    // 建立查询池，注入多条件查询
+    const builder: SelectQueryBuilder<Singer> = this.createBuilderWithWhereOptions(whereOptions);
     // offset limit
     builder.skip(skip);
     builder.take(take);
@@ -66,13 +67,8 @@ export class SingerService extends BaseService<Singer, SingerVO> {
 
   async findSingerById(id: number): Promise<SingerVO> {
     const whereOptions: Array<BatchWhereOption> = [{ table: 'singer', column: 'id', value: id, condition: 'equal' }];
-    const builder: SelectQueryBuilder<Singer> = this.model
-      .createQueryBuilder('singer')
-      .leftJoinAndSelect('singer.songs', 'song');
-    // 指定列查询
-    this.specifyJoinColumns(builder);
-    // id条件注入
-    this.builderBatchWhere(builder, whereOptions);
+    // 建立查询池，注入id条件查询
+    const builder: SelectQueryBuilder<Singer> = this.createBuilderWithWhereOptions(whereOptions);
     const singer: Singer = await builder.getOne();
     const singerVO = new SingerVO();
     Object.assign(singerVO, singer);

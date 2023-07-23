@@ -147,6 +147,11 @@ export class SongController extends BaseController<Song, SongVO> {
     return this.songService.updateSong(updateSongDTO);
   }
 
+  @Post('/findById', { description: '根据id查询歌曲' })
+  async findSongById(@Query('id') id: number): Promise<SongVO> {
+    return this.songService.findSongById(id);
+  }
+
   @Post('/delete', { description: '删除单曲' })
   async delete(@Query('id') id: number): Promise<boolean> {
     await this.songService.deleteSong(id);
