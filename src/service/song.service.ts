@@ -36,7 +36,7 @@ export class SongService extends BaseService<Song, SongVO> {
     return new SongVO();
   }
 
-  getColumns(): Array<keyof SongVO> | undefined {
+  getColumns(): Array<keyof SongVO> {
     return ['id', 'songName', 'duration', 'lyric', 'musicUrl', 'publishTime'];
   }
 

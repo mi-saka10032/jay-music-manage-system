@@ -46,7 +46,7 @@ export abstract class BaseService<T extends BaseEntity, V extends BaseVO> {
   abstract getVO(): V;
 
   // 获取VO对象指定查询列字段 不提供Array 默认为where提供undefined全量查询
-  abstract getColumns(): Array<keyof V> | undefined;
+  abstract getColumns(): Array<keyof V>;
 
   /**
    * @description 字符串全模糊匹配查询

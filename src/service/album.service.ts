@@ -23,7 +23,7 @@ export class AlbumService extends BaseService<Album, AlbumVO> {
     return new AlbumVO();
   }
 
-  getColumns(): Array<keyof AlbumVO> | undefined {
+  getColumns(): Array<keyof AlbumVO> {
     return ['id', 'albumName', 'publishTime', 'coverUrl'];
   }
 

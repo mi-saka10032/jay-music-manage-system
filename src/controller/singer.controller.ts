@@ -61,13 +61,13 @@ export class SingerController extends BaseController<Singer, SingerVO> {
   @ApiResponse({ type: SingerListVO })
   @Post('/page', { description: '歌手分页查询带歌手名模糊搜索' })
   async querySingers(@Body() singerDTO: SingerDTO): Promise<Page<SingerVO>> {
-    const map: Map<string, any> = new Map(Object.entries(singerDTO));
-    return super.page(map);
+    const { pageNo, pageSize } = singerDTO;
+    return this.singerService.querySinger(singerDTO, pageNo, pageSize);
   }
 
   @ApiResponse({ type: SingerVO })
   @Post('/findById', { description: '根据id查询歌手' })
   async findSingerById(@Query('id') id: number): Promise<SingerVO> {
-    return super.findById(id);
+    return this.singerService.findSingerById(id);
   }
 }
