@@ -7,6 +7,7 @@ import { SingerVO } from '../api/vo/SingerVO';
 import { SingerDTO } from '../api/dto/SingerDTO';
 import { Page } from '../common/Page';
 import { SongService } from './song.service';
+import { defaultPageNo, defaultPageSize } from '../decorator/page.decorator';
 
 @Provide()
 export class SingerService extends BaseService<Singer, SingerVO> {
@@ -45,10 +46,12 @@ export class SingerService extends BaseService<Singer, SingerVO> {
     return builder;
   }
 
-  async querySinger(singerDTO: SingerDTO, pageNo: number, pageSize: number): Promise<Page<SingerVO>> {
+  async querySinger(
+    singerDTO: SingerDTO,
+    @defaultPageNo() pageNo: number,
+    @defaultPageSize() pageSize: number
+  ): Promise<Page<SingerVO>> {
     const { singerName, coverUrl } = singerDTO;
-    const skip = !isNaN(pageNo) ? (pageNo - 1) * pageSize : 0;
-    const take = !isNaN(pageSize) ? pageSize : 10;
     const whereOptions: Array<BatchWhereOption> = [
       { table: 'singer', column: 'singerName', value: singerName, condition: 'like' },
       { table: 'singer', column: 'coverUrl', value: coverUrl, condition: 'like' },
@@ -56,8 +59,8 @@ export class SingerService extends BaseService<Singer, SingerVO> {
     // 建立查询池，注入多条件查询
     const builder: SelectQueryBuilder<Singer> = this.createBuilderWithWhereOptions(whereOptions);
     // offset limit
-    builder.skip(skip);
-    builder.take(take);
+    builder.skip((pageNo - 1) * pageSize);
+    builder.take(pageSize);
     // 查询结果转换
     const [singerList, total]: [Array<Singer>, number] = await builder.getManyAndCount();
     const singerListVO: Array<SingerVO> = new Array<SingerVO>();

@@ -49,8 +49,6 @@ export abstract class BaseController<T extends BaseEntity, V extends BaseVO> {
   async page(@Body() map: Map<string, any>): Promise<Page<V>> {
     const pageNo = map.get('pageNo');
     const pageSize = map.get('pageSize');
-    Assert.notNull(pageNo != null && pageNo > 0, ErrorCode.UN_ERROR, 'pageNo不能为空');
-    Assert.notNull(pageSize != null && pageSize > 0, ErrorCode.UN_ERROR, 'pageSize不能为空');
     map.delete('pageNo');
     map.delete('pageSize');
     const where = {};

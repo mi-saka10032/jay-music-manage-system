@@ -23,6 +23,7 @@ import { NewAlbumDTO } from '../api/dto/AlbumDTO';
 import { NewSingerDTO } from '../api/dto/SingerDTO';
 import { Page } from '../common/Page';
 import { CommonException } from '../common/CommonException';
+import { defaultPageNo, defaultPageSize } from '../decorator/page.decorator';
 
 @Provide()
 export class SongService extends BaseService<Song, SongVO> {
@@ -234,11 +235,12 @@ export class SongService extends BaseService<Song, SongVO> {
    * @param pageNo number
    * @param pageSize number
    */
-  async querySongs(songDTO: SongDTO, pageNo: number, pageSize: number): Promise<Page<SongVO>> {
+  async querySongs(
+    songDTO: SongDTO,
+    @defaultPageNo() pageNo: number,
+    @defaultPageSize() pageSize: number
+  ): Promise<Page<SongVO>> {
     const { songName, lyric, albumName, singerName, startPublishTime, endPublishTime } = songDTO;
-    const skip = !isNaN(pageNo) ? (pageNo - 1) * pageSize : 0;
-    const take = !isNaN(pageSize) ? pageSize : 10;
-    Assert.notNull(0 < take && take < 1000, ErrorCode.UN_ERROR, '0 < pageSize < 1000');
     // 设置查询条件
     const whereOptions: Array<BatchWhereOption> = [
       { table: 'song', column: 'songName', value: songName, condition: 'like' },
@@ -251,8 +253,8 @@ export class SongService extends BaseService<Song, SongVO> {
     // 建立查询池、指定列查询、where条件注入
     const builder: SelectQueryBuilder<Song> = this.createBuilderWithWhereOptions(whereOptions);
     // offset limit
-    builder.skip(skip);
-    builder.take(take);
+    builder.skip((pageNo - 1) * pageSize);
+    builder.take(pageSize);
     // 查询结果转换
     const [songList, total]: [Array<Song>, number] = await builder.getManyAndCount();
     const songListVO: Array<SongVO> = new Array<SongVO>();

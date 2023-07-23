@@ -145,8 +145,6 @@ export class SongController extends BaseController<Song, SongVO> {
       Assert.notDate(endPublishTime, ErrorCode.UN_ERROR, 'endPublishTime不是一个有效日期');
       songDTO.endPublishTime = new Date(endPublishTime);
     }
-    Assert.notNull(pageNo != null && pageNo > 0, ErrorCode.UN_ERROR, 'pageNo不能为空');
-    Assert.notNull(pageSize != null && pageSize > 0, ErrorCode.UN_ERROR, 'pageSize不能为空');
     return this.songService.querySongs(songDTO, pageNo, pageSize);
   }
 

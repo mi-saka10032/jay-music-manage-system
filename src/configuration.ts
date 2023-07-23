@@ -14,9 +14,10 @@ import * as jwt from '@midwayjs/jwt';
 import * as crossDomain from '@midwayjs/cross-domain';
 import { SecurityMiddleware } from './middleware/security.middleware';
 import * as dotenv from 'dotenv';
-import { ILogger } from '@midwayjs/core';
+import { ILogger, MidwayDecoratorService } from '@midwayjs/core';
 import * as upload from '@midwayjs/upload';
 import * as oss from '@midwayjs/oss';
+import { PAGE_NO_KEY, PAGE_SIZE_KEY } from './decorator/page.decorator';
 
 // 初始化环境变量
 dotenv.config();
@@ -46,8 +47,26 @@ export class ContainerLifeCycle {
   @Inject()
   logger: ILogger;
 
+  @Inject()
+  decoratorService: MidwayDecoratorService;
+
   async onReady() {
     this.app.useMiddleware([SecurityMiddleware, FormatMiddleware, ReportMiddleware]);
     this.app.useFilter([NotFoundFilter, DefaultErrorFilter]);
+    // 实现参数装饰器
+    this.decoratorService.registerParameterHandler(PAGE_NO_KEY, options => {
+      const pageNo = options.originArgs[options.parameterIndex];
+      if (typeof pageNo !== 'number' || Number(pageNo) < 1) {
+        return 1;
+      } else return pageNo;
+    });
+    this.decoratorService.registerParameterHandler(PAGE_SIZE_KEY, options => {
+      const pageSize = options.originArgs[options.parameterIndex];
+      if (typeof pageSize !== 'number' || Number(pageSize) < 1) {
+        return 10;
+      } else if (Number(pageSize) > 1000) {
+        return 1000;
+      } else return pageSize;
+    });
   }
 }

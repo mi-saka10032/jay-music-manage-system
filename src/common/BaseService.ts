@@ -18,6 +18,7 @@ import { FindOptionsWhere } from 'typeorm/find-options/FindOptionsWhere';
 import { ErrorCode } from './ErrorCode';
 import { ILogger } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
+import { defaultPageNo, defaultPageSize } from '../decorator/page.decorator';
 
 export interface BatchWhereOption {
   table: string;
@@ -209,13 +210,14 @@ export abstract class BaseService<T extends BaseEntity, V extends BaseVO> {
    * @param pageNo 去除非空校验，默认取1
    * @param pageSize 去除非空校验，默认取10
    */
-  public async page(where: FindOptionsWhere<T>, pageNo: number, pageSize: number): Promise<Page<V>> {
+  public async page(
+    where: FindOptionsWhere<T>,
+    @defaultPageNo() pageNo: number,
+    @defaultPageSize() pageSize: number
+  ): Promise<Page<V>> {
     Assert.notNull(where, ErrorCode.UN_ERROR, '查询参数不能为空');
-    // Assert.notNull(pageNo != null && pageNo > 0, ErrorCode.UN_ERROR, 'pageNo不能为空');
-    // Assert.notNull(pageSize != null && pageSize > 0, ErrorCode.UN_ERROR, 'pageSize不能为空');
-    const skip = !isNaN(pageNo) ? (pageNo - 1) * pageSize : 0;
-    const take = !isNaN(pageSize) ? pageSize : 10;
-    Assert.notNull(0 < take && take < 1000, ErrorCode.UN_ERROR, '0 < pageSize < 1000');
+    const skip = (pageNo - 1) * pageSize;
+    const take = pageSize;
     // 字符串模糊匹配
     this.fuzzyWhere(where);
     // 指定VO字段查询列

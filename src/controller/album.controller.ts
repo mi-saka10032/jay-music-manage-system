@@ -75,8 +75,6 @@ export class AlbumController extends BaseController<Album, AlbumVO> {
       Assert.notDate(endPublishTime, ErrorCode.UN_ERROR, 'endPublishTime不是一个有效日期');
       albumDTO.endPublishTime = new Date(endPublishTime);
     }
-    Assert.notNull(pageNo != null && pageNo > 0, ErrorCode.UN_ERROR, 'pageNo不能为空');
-    Assert.notNull(pageSize != null && pageSize > 0, ErrorCode.UN_ERROR, 'pageSize不能为空');
     return this.albumService.queryAlbums(albumDTO, pageNo, pageSize);
   }
 
