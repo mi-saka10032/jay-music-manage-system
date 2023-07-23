@@ -326,18 +326,7 @@ export class SongService extends BaseService<Song, SongVO> {
     for (const key of keys) {
       song[key] = updateSongDTO[key];
     }
-    const { id: songId, albumId, singerIds } = updateSongDTO;
-    const updateOperations: Array<Promise<any>> = [];
-    if (albumId) {
-      // updateSongDTO存在albumId且不为null 执行albumId查询，将当前Song与之关联
-      updateOperations.push(this.shelveAlbum_Song(albumId, songId, true));
-    }
-    if (singerIds?.length > 0) {
-      // updateSongDTO存在singerId且不为null 执行singerId查询，将当前Song与之关联
-      updateOperations.push(this.shelveSinger_Song(singerIds, songId, true));
-    }
-    updateOperations.push(super.update(song));
-    await Promise.all(updateOperations);
+    await super.update(song);
     return updateSongDTO;
   }
 
