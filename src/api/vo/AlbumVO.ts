@@ -1,10 +1,9 @@
 import { BaseVO } from './BaseVO';
 import { ApiExtraModel, ApiProperty, getSchemaPath } from '@midwayjs/swagger';
-import { SongVO } from './SongVO';
+import { BaseSongVO } from './SongVO';
 import { PageVO } from './PageVO';
 
-@ApiExtraModel(SongVO)
-export class AlbumVO extends BaseVO {
+export class BaseAlbumVO extends BaseVO {
   @ApiProperty({ type: String, description: '专辑名称' })
   albumName: string;
 
@@ -13,9 +12,12 @@ export class AlbumVO extends BaseVO {
 
   @ApiProperty({ type: String, description: '封面图片链接' })
   coverUrl: string | null;
+}
 
-  @ApiProperty({ type: 'array', items: { $ref: () => getSchemaPath(SongVO) }, description: '歌曲列表' })
-  songs: Array<SongVO>;
+@ApiExtraModel(BaseSongVO)
+export class AlbumVO extends BaseAlbumVO {
+  @ApiProperty({ type: 'array', items: { $ref: () => getSchemaPath(BaseSongVO) }, description: '歌曲列表' })
+  songs: Array<BaseSongVO>;
 }
 
 export class AlbumListVO extends PageVO(AlbumVO) {}

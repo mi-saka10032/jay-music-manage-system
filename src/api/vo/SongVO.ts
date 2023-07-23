@@ -1,11 +1,10 @@
 import { BaseVO } from './BaseVO';
 import { ApiExtraModel, ApiProperty, getSchemaPath } from '@midwayjs/swagger';
-import { SingerVO } from './SingerVO';
+import { BaseSingerVO } from './SingerVO';
 import { PageVO } from './PageVO';
-import { AlbumVO } from './AlbumVO';
+import { BaseAlbumVO } from './AlbumVO';
 
-@ApiExtraModel(SingerVO)
-export class SongVO extends BaseVO {
+export class BaseSongVO extends BaseVO {
   @ApiProperty({ type: String, description: '歌曲名称' })
   songName: string;
 
@@ -20,12 +19,15 @@ export class SongVO extends BaseVO {
 
   @ApiProperty({ type: Date, description: '发行日期' })
   publishTime: Date;
+}
 
-  @ApiProperty({ type: () => AlbumVO, description: '专辑名' })
-  album: AlbumVO;
+@ApiExtraModel(BaseSingerVO)
+export class SongVO extends BaseSongVO {
+  @ApiProperty({ type: () => BaseAlbumVO, description: '专辑名' })
+  album: BaseAlbumVO;
 
-  @ApiProperty({ type: 'array', items: { $ref: () => getSchemaPath(SingerVO) }, description: '专辑名' })
-  singers: Array<SingerVO>;
+  @ApiProperty({ type: 'array', items: { $ref: () => getSchemaPath(BaseSingerVO) }, description: '专辑名' })
+  singers: Array<BaseSingerVO>;
 }
 
 export class SongListVO extends PageVO(SongVO) {}
