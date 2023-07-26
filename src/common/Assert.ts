@@ -1,4 +1,5 @@
 import { CommonException } from './CommonException';
+import { ErrorCode } from './ErrorCode';
 
 /**
  * 断言工具类
@@ -42,6 +43,15 @@ export class Assert {
   }
 
   /**
+   * 非数字断言
+   */
+  static notNumber(num: any, errorCode: number, errorMsg: string) {
+    if (!(typeof num === 'number')) {
+      throw new CommonException(errorCode, errorMsg);
+    }
+  }
+
+  /**
    * 空字符串断言
    */
   static notEmpty(obj: any, errorCode: number, errorMsg: string) {
@@ -64,5 +74,42 @@ export class Assert {
    */
   static neteaseFail(errorCode: number, errorMsg: string) {
     throw new CommonException(errorCode, errorMsg);
+  }
+
+  // 以下是公共断言方法，提供公共错误码与错误信息
+  static baseAssert_CreateObj(obj: any) {
+    Assert.notNull(obj, ErrorCode.UN_ERROR, '新建对象不能为空');
+  }
+
+  static baseAssert_CreateId(id: number) {
+    Assert.notNull(!id, ErrorCode.UN_ERROR, '新建对象时，ID必须为空');
+  }
+
+  static baseAssert_DeleteId(id: number) {
+    Assert.notNull(id, ErrorCode.UN_ERROR, '删除对象时，ID不能为空');
+  }
+
+  static baseAssert_UpdateObj(obj: any) {
+    Assert.notNull(obj, ErrorCode.UN_ERROR, '更新对象不能为空');
+  }
+
+  static baseAssert_UpdateId(id: number) {
+    Assert.notNull(id, ErrorCode.UN_ERROR, '更新对象时，ID不能为空');
+  }
+
+  static baseAssert_FindId(id: number) {
+    Assert.notNull(id, ErrorCode.UN_ERROR, '查询对象时，ID不能为空');
+  }
+
+  static baseAssert_FindIds(ids: Array<number>) {
+    Assert.notNull(ids, ErrorCode.UN_ERROR, '查询对象时，IDS不能为空');
+  }
+
+  static baseAssert_QueryPage(obj: any) {
+    Assert.notNull(obj, ErrorCode.UN_ERROR, '分页查询时，查询参数不能为空');
+  }
+
+  static baseAssert_QueryOne(obj: any) {
+    Assert.notNull(obj, ErrorCode.UN_ERROR, '单个对象查询时，查询参数不能为空');
   }
 }

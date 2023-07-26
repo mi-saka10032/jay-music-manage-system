@@ -2,10 +2,9 @@ import { BaseService } from './BaseService';
 import { BaseEntity } from './BaseEntity';
 import { BaseVO } from '../api/vo/BaseVO';
 import { Body, Post, Query } from '@midwayjs/decorator';
-import { Assert } from './Assert';
-import { ErrorCode } from './ErrorCode';
 import { ApiResponse } from '@midwayjs/swagger';
 import { Page } from './Page';
+import { Assert } from './Assert';
 
 /**
  * Controller基础类，由于类继承不支持装饰类@Post、@Query、@Body等，
@@ -17,36 +16,42 @@ export abstract class BaseController<T extends BaseEntity, V extends BaseVO> {
 
   @Post('/create')
   async create(@Body() body: T): Promise<V> {
-    Assert.notNull(!body.id, ErrorCode.UN_ERROR, '创建对象时ID必须为空');
+    Assert.baseAssert_CreateObj(body);
+    Assert.baseAssert_CreateId(body.id);
     return this.getService().create(body);
   }
 
   @Post('/delete')
   async delete(@Query('id') id: number): Promise<boolean> {
+    Assert.baseAssert_DeleteId(id);
     await this.getService().delete(id);
     return true;
   }
 
   @Post('/update')
   async update(@Body() body: T): Promise<V> {
-    Assert.notNull(body.id, ErrorCode.UN_ERROR, '更新对象时ID不能为空');
+    Assert.baseAssert_UpdateObj(body);
+    Assert.baseAssert_UpdateId(body.id);
     return this.getService().update(body);
   }
 
   @Post('/findById')
   async findById(@Query('id') id: number): Promise<V> {
+    Assert.baseAssert_FindId(id);
     return this.getService().findById(id);
   }
 
   @ApiResponse({ description: '通过一批主键查找' })
   @Post('/findByIds')
   async findByIds(@Query('ids') ids: number[]): Promise<V[]> {
+    Assert.baseAssert_FindIds(ids);
     return this.getService().findByIds(ids);
   }
 
   @ApiResponse({ description: '分页查询' })
   @Post('/page')
   async page(@Body() map: Map<string, any>): Promise<Page<V>> {
+    Assert.baseAssert_QueryPage(map);
     const pageNo = map.get('pageNo');
     const pageSize = map.get('pageSize');
     map.delete('pageNo');
@@ -58,7 +63,7 @@ export abstract class BaseController<T extends BaseEntity, V extends BaseVO> {
 
   @Post('/findOne')
   async findOne(@Body() body: T): Promise<V> {
-    Assert.notNull(!body.id, ErrorCode.UN_ERROR, '不能使用ID查询');
+    Assert.baseAssert_QueryOne(body);
     const where = {};
     Object.keys(body).forEach(key => {
       where[key] = body[key];

@@ -135,6 +135,7 @@ export class SongController extends BaseController<Song, SongVO> {
   @ApiResponse({ type: SongListVO })
   @Post('/page', { description: '歌曲分页查询' })
   async querySingleSongs(@Body() songDTO: SongDTO): Promise<Page<SongVO>> {
+    Assert.baseAssert_QueryPage(songDTO);
     const { startPublishTime, endPublishTime, pageNo, pageSize } = songDTO;
     // 开始或结束日期，一旦存在则需要进行日期格式断言
     if (startPublishTime) {
@@ -150,11 +151,16 @@ export class SongController extends BaseController<Song, SongVO> {
 
   @Post('/update', { description: '更新单曲' })
   async updateSingleSongs(@Body() updateSongDTO: UpdateSongDTO): Promise<UpdateSongDTO> {
+    Assert.baseAssert_UpdateObj(updateSongDTO);
+    Assert.baseAssert_UpdateId(updateSongDTO.id);
     return this.songService.updateSong(updateSongDTO);
   }
 
   @Post('/shelveAlbumId', { description: '关联/取消关联专辑' })
   async shelveAlbumById(@Body() body: Shelve_Album_SongDTO): Promise<boolean> {
+    Assert.baseAssert_QueryOne(body);
+    Assert.notNull(body.albumId, ErrorCode.UN_ERROR, 'albumId不能为空');
+    Assert.notNull(body.songId, ErrorCode.UN_ERROR, 'songId不能为空');
     const { albumId, songId, shelve } = body;
     await this.songService.shelveAlbum_Song(albumId, songId, shelve);
     return true;
@@ -162,6 +168,9 @@ export class SongController extends BaseController<Song, SongVO> {
 
   @Post('/shelveSingerId', { description: '关联/取消关联歌手' })
   async shelveSingerById(@Body() body: Shelve_Singer_SongDTO): Promise<boolean> {
+    Assert.baseAssert_QueryOne(body);
+    Assert.notNull(body.singerIds, ErrorCode.UN_ERROR, 'singerIds不能为空');
+    Assert.notNull(body.songId, ErrorCode.UN_ERROR, 'songId不能为空');
     const { singerIds, songId, shelve } = body;
     await this.songService.shelveSinger_Song(singerIds, songId, shelve);
     return true;
@@ -169,11 +178,13 @@ export class SongController extends BaseController<Song, SongVO> {
 
   @Post('/findById', { description: '根据id查询歌曲' })
   async findSongById(@Query('id') id: number): Promise<SongVO> {
+    Assert.baseAssert_FindId(id);
     return this.songService.findSongById(id);
   }
 
   @Post('/delete', { description: '删除单曲' })
   async delete(@Query('id') id: number): Promise<boolean> {
+    Assert.baseAssert_DeleteId(id);
     await this.songService.deleteSong(id);
     return true;
   }

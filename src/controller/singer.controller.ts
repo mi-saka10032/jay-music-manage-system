@@ -32,7 +32,8 @@ export class SingerController extends BaseController<Singer, SingerVO> {
   @ApiResponse({ type: SingerVO })
   @Post('/create', { description: '新增歌手' })
   async createSinger(@Body() param: NewSingerDTO): Promise<SingerVO> {
-    Assert.isTrue(param.singerName != null, ErrorCode.UN_ERROR, 'singerName不能为空');
+    Assert.baseAssert_CreateObj(param);
+    Assert.notNull(param.singerName, ErrorCode.UN_ERROR, 'singerName不能为空');
     const singer: Singer = new Singer();
     singer.coverUrl = param.coverUrl;
     singer.singerName = param.singerName;
@@ -48,13 +49,13 @@ export class SingerController extends BaseController<Singer, SingerVO> {
   @ApiResponse({ type: SingerVO })
   @Post('/update', { description: '更新歌手信息' })
   async updateSinger(@Body() param: Singer): Promise<SingerVO> {
-    Assert.isTrue(param.id != null, ErrorCode.UN_ERROR, 'id不能为空');
     return super.update(param);
   }
 
   @ApiResponse({ type: Boolean })
   @Post('/delete', { description: '根据id删除指定歌手' })
   async deleteSingerById(@Query('id') id: number): Promise<boolean> {
+    Assert.baseAssert_DeleteId(id);
     await this.singerService.deleteSinger(id);
     return true;
   }
@@ -62,6 +63,7 @@ export class SingerController extends BaseController<Singer, SingerVO> {
   @ApiResponse({ type: SingerListVO })
   @Post('/page', { description: '歌手分页查询带歌手名模糊搜索' })
   async querySingers(@Body() singerDTO: SingerDTO): Promise<Page<SingerVO>> {
+    Assert.baseAssert_QueryPage(singerDTO);
     const { pageNo, pageSize } = singerDTO;
     return this.singerService.querySinger(singerDTO, pageNo, pageSize);
   }
@@ -69,6 +71,7 @@ export class SingerController extends BaseController<Singer, SingerVO> {
   @ApiResponse({ type: SingerVO })
   @Post('/findById', { description: '根据id查询歌手' })
   async findSingerById(@Query('id') id: number): Promise<SingerVO> {
+    Assert.baseAssert_FindId(id);
     return this.singerService.findSingerById(id);
   }
 }

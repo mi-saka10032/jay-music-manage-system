@@ -13,9 +13,7 @@ import { SnowflakeIdGenerate } from '../utils/Snowflake';
 import { BaseEntity } from './BaseEntity';
 import { BaseVO } from '../api/vo/BaseVO';
 import { Page } from './Page';
-import { Assert } from './Assert';
 import { FindOptionsWhere } from 'typeorm/find-options/FindOptionsWhere';
-import { ErrorCode } from './ErrorCode';
 import { ILogger } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
 import { defaultPageNo, defaultPageSize } from '../decorator/page.decorator';
@@ -156,7 +154,6 @@ export abstract class BaseService<T extends BaseEntity, V extends BaseVO> {
    * @param o o.id必须为空
    */
   public async create(o: T): Promise<V> {
-    Assert.isTrue(o.id === null || o.id === undefined, ErrorCode.UN_ERROR, '新建对象不能含有ID');
     o.id = this.idGenerate.generate();
     o.createrId = this.ctx.userContext.userId;
     return this.save(o);
@@ -167,13 +164,11 @@ export abstract class BaseService<T extends BaseEntity, V extends BaseVO> {
    * @param o o.id不能为空
    */
   public async update(o: T): Promise<V> {
-    Assert.notNull(o.id, ErrorCode.UN_ERROR, '更新对象ID不能为空');
     return this.save(o);
   }
 
   // 根据id删除指定对象
   public async delete(id: number): Promise<void> {
-    Assert.notNull(id, ErrorCode.UN_ERROR, '删除对象时，ID不能为空');
     await this.getModel().delete(id);
   }
 
@@ -182,7 +177,6 @@ export abstract class BaseService<T extends BaseEntity, V extends BaseVO> {
    * @param id
    */
   public async findById(id: number): Promise<V> {
-    Assert.notNull(id, ErrorCode.UN_ERROR, '查询对象时，ID不能为空');
     const select = this.getColumns() as unknown as FindOptionsSelect<T>;
     const where = { id } as FindOptionsWhere<T>;
     const result: T = await this.getModel().findOne({ select, where });
@@ -195,7 +189,6 @@ export abstract class BaseService<T extends BaseEntity, V extends BaseVO> {
    * @param ids
    */
   public async findByIds(ids: number[]): Promise<V[]> {
-    Assert.notNull(ids, ErrorCode.UN_ERROR, '查询对象时，IDS不能为空');
     // 指定VO字段查询列
     const select = this.getColumns() as unknown as FindOptionsSelect<T>;
     const where = { id: In(ids) } as FindOptionsWhere<T>;
@@ -215,7 +208,6 @@ export abstract class BaseService<T extends BaseEntity, V extends BaseVO> {
     @defaultPageNo() pageNo: number,
     @defaultPageSize() pageSize: number
   ): Promise<Page<V>> {
-    Assert.notNull(where, ErrorCode.UN_ERROR, '查询参数不能为空');
     const skip = (pageNo - 1) * pageSize;
     const take = pageSize;
     // 字符串模糊匹配
@@ -233,7 +225,6 @@ export abstract class BaseService<T extends BaseEntity, V extends BaseVO> {
    * @param where 筛选条件，string类型默认全模糊(%s%)匹配
    */
   public async findOne(where: FindOptionsWhere<T>): Promise<V> {
-    Assert.notNull(where, ErrorCode.UN_ERROR, '单个查询时，对象不能为空');
     // 字符串模糊匹配
     this.fuzzyWhere(where);
     // 指定VO字段查询列

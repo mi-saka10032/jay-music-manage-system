@@ -32,12 +32,13 @@ export class AlbumController extends BaseController<Album, AlbumVO> {
   @ApiResponse({ type: AlbumVO })
   @Post('/create', { description: '新增专辑' })
   async createAlbum(@Body() param: NewAlbumDTO): Promise<AlbumVO> {
+    Assert.baseAssert_CreateObj(param);
+    Assert.notNull(param.albumName, ErrorCode.UN_ERROR, 'albumName不能为空');
     const album: Album = new Album();
     if (param.publishTime) {
       Assert.notDate(param.publishTime, ErrorCode.UN_ERROR, 'publishTime不是一个有效日期');
       album.publishTime = new Date(param.publishTime);
     }
-    Assert.notNull(param.albumName, ErrorCode.UN_ERROR, 'albumName不能为空');
     album.albumName = param.albumName;
     album.coverUrl = param.coverUrl;
     this.userService.injectUserid(album);
@@ -53,7 +54,6 @@ export class AlbumController extends BaseController<Album, AlbumVO> {
   @ApiResponse({ type: AlbumVO })
   @Post('/update', { description: '更新专辑信息' })
   async updateAlbum(@Body() param: Album): Promise<AlbumVO> {
-    Assert.isTrue(param.id != null, ErrorCode.UN_ERROR, 'id不能为空');
     return super.update(param);
   }
   @ApiResponse({ type: Boolean })
@@ -65,6 +65,7 @@ export class AlbumController extends BaseController<Album, AlbumVO> {
   @ApiResponse({ type: AlbumListVO })
   @Post('/page', { description: '专辑分页查询' })
   async queryAlbums(@Body() albumDTO: AlbumDTO): Promise<Page<AlbumVO>> {
+    Assert.baseAssert_QueryPage(albumDTO);
     const { startPublishTime, endPublishTime, pageNo, pageSize } = albumDTO;
     // 开始或结束日期，一旦存在则需要进行日期格式断言
     if (startPublishTime) {

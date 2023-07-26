@@ -9,7 +9,6 @@ import { createReadStream, ReadStream } from 'fs';
 import { IAudioMetadata, parseNodeStream } from 'music-metadata-browser';
 import { ILogger } from '@midwayjs/core';
 import { OSSService } from '@midwayjs/oss';
-import { Assert } from '../common/Assert';
 import { ErrorCode } from '../common/ErrorCode';
 import { SnowflakeIdGenerate } from '../utils/Snowflake';
 import { AlbumService } from './album.service';
@@ -322,7 +321,6 @@ export class SongService extends BaseService<Song, SongVO> {
    * @param updateSongDTO UpdateSongDTO
    */
   async updateSong(updateSongDTO: UpdateSongDTO): Promise<UpdateSongDTO> {
-    Assert.notNull(updateSongDTO.id, ErrorCode.UN_ERROR, 'song.id不能为空');
     const song: Song = new Song();
     const keys: Array<string> = ['id', 'songName', 'duration', 'lyric', 'musicUrl', 'publishTime'];
     for (const key of keys) {
