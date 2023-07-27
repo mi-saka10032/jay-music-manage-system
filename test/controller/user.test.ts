@@ -1,13 +1,12 @@
 import { createHttpRequest } from '@midwayjs/mock';
-import { Application } from '@midwayjs/koa';
 import { ErrorCode } from "../../src/common/ErrorCode";
 import { User } from '../../src/entity/user'
-import { afterHandler, beforeHandler } from '../utils/lifeCycle';
+import { afterHandler, beforeHandler, ControllerContext } from '../utils/controllerLifeCycle';
 
 describe('test/controller/user.test.ts', () => {
 
   let o: User;
-  const context: { app: Application | null, token: string } = {
+  const context: ControllerContext = {
     app: null,
     token: '',
   }

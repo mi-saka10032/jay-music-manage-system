@@ -1,13 +1,12 @@
 import { Album } from '../../src/entity/album';
-import { Application } from '@midwayjs/koa';
-import { afterHandler, beforeHandler } from '../utils/lifeCycle';
+import { afterHandler, beforeHandler, ControllerContext } from '../utils/controllerLifeCycle';
 import { createHttpRequest } from '@midwayjs/mock';
 import { ErrorCode } from '../../src/common/ErrorCode';
 
 describe('test/controller/album.test.ts', () => {
 
   let o: Album;
-  const context: { app: Application | null, token: string } = {
+  const context: ControllerContext = {
     app: null,
     token: '',
   };

@@ -1,13 +1,12 @@
 import { createHttpRequest } from '@midwayjs/mock';
-import { Application } from '@midwayjs/koa';
 import { ErrorCode } from '../../src/common/ErrorCode';
 import { Singer } from '../../src/entity/singer';
-import { afterHandler, beforeHandler } from '../utils/lifeCycle';
+import { afterHandler, beforeHandler, ControllerContext } from '../utils/controllerLifeCycle';
 
 describe('test/controller/singer.test.ts', () => {
 
   let o: Singer;
-  const context: { app: Application | null, token: string } = {
+  const context: ControllerContext = {
     app: null,
     token: '',
   }
@@ -20,7 +19,7 @@ describe('test/controller/singer.test.ts', () => {
   it('should POST /api/singer/create', async () => {
     o = new Singer();
     Object.assign(o, {
-      singerName: new Date().getTime().toString(),
+      singerName: Date.now().toString(),
     });
     const result = await createHttpRequest(context.app).post('/api/singer/create')
       .set({ 'Authorization': 'Bearer ' + context.token })

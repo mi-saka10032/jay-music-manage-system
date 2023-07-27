@@ -1,34 +1,25 @@
-import { Application, Framework } from '@midwayjs/koa';
 import { AlbumService } from '../../src/service/album.service';
 import { Album } from '../../src/entity/album';
 import { AlbumVO } from '../../src/api/vo/AlbumVO';
-import { close, createApp } from '@midwayjs/mock';
 import { Assert } from '../../src/common/Assert';
 import { ErrorCode } from '../../src/common/ErrorCode';
 import { Page } from '../../src/common/Page';
 import { AlbumDTO } from '../../src/api/dto/AlbumDTO';
+import { afterHandler, beforeHandler, ServiceContext } from '../utils/serviceLifeCycle';
 
 describe('test/service/album.test.ts', () => {
 
-  let app: Application;
-  let service: AlbumService;
+  const context: ServiceContext<AlbumService> = {
+    app: null,
+    service: null as AlbumService
+  };
   let id: number;
   let i: Album = new Album();
   let o: AlbumVO = new AlbumVO();
 
-  beforeAll(async () => {
-    try {
-      app = await createApp<Framework>();
-      service = await app.getApplicationContext().getAsync<AlbumService>(AlbumService);
-    } catch (err) {
-      console.error('test beforeAll error', err);
-      throw err;
-    }
-  });
+  beforeAll(beforeHandler.bind(null, context, AlbumService));
 
-  afterAll(async () => {
-    await close(app);
-  });
+  afterAll(afterHandler.bind(null, context));
 
   // CRUD
   it('test service.crud ', async () => {
@@ -36,7 +27,7 @@ describe('test/service/album.test.ts', () => {
     // create
     const albumObj = {
       albumName: new Date().getTime().toString(),
-      publishTime: new Date().toString(),
+      publishTime: new Date(),
       coverUrl: 'https://xxx.xxx'
     };
     i = Object.assign(i, {
@@ -44,27 +35,29 @@ describe('test/service/album.test.ts', () => {
       updaterId: 1,
       createrId: 1,
     });
-    o = await service.save(i);
+    o = await context.service.create(i);
     id = o.id;
     Assert.notEmpty(id, ErrorCode.UN_ERROR, '创建专辑失败');
 
     // find
-    o = await service.findById(id);
+    o = await context.service.findById(id);
     Assert.notNull(o, ErrorCode.UN_ERROR, '查询专辑失败');
 
     // update
     Object.assign(i, o);
-    await service.save(i);
-    await service.findById(id);
+    await context.service.update(i);
+    await context.service.findById(id);
 
     // page
     const albumDTO = new AlbumDTO();
-    const page: Page<AlbumVO> = await service.page(albumDTO, 1, 10);
+    albumDTO.startPublishTime = new Date(Date.now() - 10000);
+    albumDTO.endPublishTime = new Date(Date.now() + 10000);
+    const page: Page<AlbumVO> = await context.service.queryAlbums(albumDTO, 1, 10);
     Assert.isTrue(page.total > 0, ErrorCode.UN_ERROR, '分页查询失败');
 
     // delete
-    await service.delete(id);
-    o = await service.findById(id);
+    await context.service.delete(id);
+    o = await context.service.findById(id);
     Assert.notNull(!o?.id, ErrorCode.UN_ERROR, '删除失败');
   });
 
