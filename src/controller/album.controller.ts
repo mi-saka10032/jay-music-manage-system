@@ -4,7 +4,6 @@ import { BaseController } from '../common/BaseController';
 import { Album } from '../entity/album';
 import { AlbumListVO, AlbumVO } from '../api/vo/AlbumVO';
 import { Context } from '@midwayjs/koa';
-import { UserService } from '../service/user.service';
 import { AlbumService } from '../service/album.service';
 import { BaseService } from '../common/BaseService';
 import { AlbumDTO, NewAlbumDTO } from '../api/dto/AlbumDTO';
@@ -22,9 +21,6 @@ export class AlbumController extends BaseController<Album, AlbumVO> {
   @Inject()
   albumService: AlbumService;
 
-  @Inject()
-  userService: UserService;
-
   getService(): BaseService<Album, AlbumVO> {
     return this.albumService;
   }
@@ -41,7 +37,6 @@ export class AlbumController extends BaseController<Album, AlbumVO> {
     }
     album.albumName = param.albumName;
     album.coverUrl = param.coverUrl;
-    this.userService.injectUserid(album);
     return super.create(album);
   }
 
