@@ -48,7 +48,7 @@ describe('test/service/singer.test.ts', () => {
     // page
     const singerDTO = new SingerDTO();
     singerDTO.singerName = prefix;
-    const page: Page<SingerVO> = await context.service.querySinger(singerDTO, 1, 10);
+    const page: Page<SingerVO> = await context.service.querySingers(singerDTO, 1, 10);
     Assert.isTrue(page.total > 0, ErrorCode.UN_ERROR, '分页查询失败');
 
     // delete

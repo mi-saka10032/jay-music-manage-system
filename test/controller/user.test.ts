@@ -77,4 +77,5 @@ describe('test/controller/user.test.ts', () => {
     expect(result.status).toBe(200);
     expect(result.body.code).toBe(ErrorCode.OK);
   });
+
 });

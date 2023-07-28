@@ -40,6 +40,17 @@ describe('test/controller/album.test.ts', () => {
     o = result.body.data;
   })
 
+  // update
+  it('should POST /api/album/update', async () => {
+    o.albumName = o.albumName + 'update';
+    const result = await createHttpRequest(context.app).post('/api/album/update')
+      .set({ 'Authorization': 'Bearer ' + context.token })
+      .send(o);
+    expect(result.status).toBe(200);
+    expect(result.body.code).toBe(ErrorCode.OK);
+    o = result.body.data;
+  })
+
   // page
   it('should POST /api/album/page', async () => {
     const body = {
@@ -63,4 +74,5 @@ describe('test/controller/album.test.ts', () => {
     expect(result.status).toBe(200);
     expect(result.body.code).toBe(ErrorCode.OK);
   });
+
 });

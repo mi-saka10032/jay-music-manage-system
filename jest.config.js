@@ -8,4 +8,16 @@ module.exports = {
   moduleNameMapper: {
     '^axios$': require.resolve('axios'),
   },
+  // 输出日志
+  reporters: [
+    'default',
+    [
+      'jest-html-reporters',
+      {
+        publicPath: './logs',
+        filename: 'midway-test.html',
+        expand: true,
+      },
+    ],
+  ],
 };

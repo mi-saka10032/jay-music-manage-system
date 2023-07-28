@@ -38,6 +38,17 @@ describe('test/controller/singer.test.ts', () => {
     o = result.body.data;
   });
 
+  // update
+  it('should POST /api/singer/update', async () => {
+    o.singerName = o.singerName + 'update';
+    const result = await createHttpRequest(context.app).post('/api/singer/update')
+      .set({ 'Authorization': 'Bearer ' + context.token })
+      .send(o);
+    expect(result.status).toBe(200);
+    expect(result.body.code).toBe(ErrorCode.OK);
+    o = result.body.data;
+  })
+
   // page
   it('should POST /api/singer/page', async () => {
     const body = { pageNo: 1, pageSize: 10, singerName: o.singerName }
@@ -55,4 +66,5 @@ describe('test/controller/singer.test.ts', () => {
     expect(result.status).toBe(200);
     expect(result.body.code).toBe(ErrorCode.OK);
   });
+
 });

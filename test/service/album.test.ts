@@ -40,7 +40,7 @@ describe('test/service/album.test.ts', () => {
     Assert.notEmpty(id, ErrorCode.UN_ERROR, '创建专辑失败');
 
     // find
-    o = await context.service.findById(id);
+    o = await context.service.findAlbumById(id);
     Assert.notNull(o, ErrorCode.UN_ERROR, '查询专辑失败');
 
     // update
@@ -56,8 +56,8 @@ describe('test/service/album.test.ts', () => {
     Assert.isTrue(page.total > 0, ErrorCode.UN_ERROR, '分页查询失败');
 
     // delete
-    await context.service.delete(id);
-    o = await context.service.findById(id);
+    await context.service.deleteAlbum(id);
+    o = await context.service.findAlbumById(id);
     Assert.notNull(!o?.id, ErrorCode.UN_ERROR, '删除失败');
   });
 
