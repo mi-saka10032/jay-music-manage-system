@@ -1,4 +1,4 @@
-import { Inject, Provide } from '@midwayjs/decorator';
+import { Provide } from '@midwayjs/decorator';
 import {
   ArtistResponse,
   LyricResponse,
@@ -6,16 +6,12 @@ import {
   NeteaseResponse,
   SingleSongsResponse,
 } from '../common/NeteaseAPIType';
-import { ILogger } from '@midwayjs/core';
 import { cloudsearch, lyric, artist_detail, Response } from 'NeteaseCloudMusicApi';
 import { ErrorCode } from '../common/ErrorCode';
 import { Assert } from '../common/Assert';
 
 @Provide()
 export class CloudService implements NETEASEAPI {
-  @Inject()
-  logger: ILogger;
-
   static responseInterceptorHandler(status: number, body: NeteaseResponse) {
     const errText = 'NeteaseAPI Failed';
     // 1. 正确响应的请求状态码为200，否则抛出异常
@@ -33,21 +29,18 @@ export class CloudService implements NETEASEAPI {
       limit: 100,
     });
     CloudService.responseInterceptorHandler(status, body);
-    this.logger.info('NeteaseAPI Music Response %j', JSON.stringify(body));
     return body as SingleSongsResponse;
   }
 
   async getLyricWithId(id: number): Promise<LyricResponse> {
     const { status, body }: Response<NeteaseResponse> = await lyric({ id });
     CloudService.responseInterceptorHandler(status, body);
-    this.logger.info('NeteaseAPI Lyric Response %j', JSON.stringify(body));
     return body as LyricResponse;
   }
 
   async getArtistWithId(id: number): Promise<ArtistResponse> {
     const { status, body }: Response<NeteaseResponse> = await artist_detail({ id });
     CloudService.responseInterceptorHandler(status, body);
-    this.logger.info('NeteaseAPI Artist Response %j', JSON.stringify(body));
     return body as ArtistResponse;
   }
 }

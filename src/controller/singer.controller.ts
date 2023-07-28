@@ -65,7 +65,7 @@ export class SingerController extends BaseController<Singer, SingerVO> {
   async querySingers(@Body() singerDTO: SingerDTO): Promise<Page<SingerVO>> {
     Assert.baseAssert_QueryPage(singerDTO);
     const { pageNo, pageSize } = singerDTO;
-    return this.singerService.querySinger(singerDTO, pageNo, pageSize);
+    return this.singerService.querySingers(singerDTO, pageNo, pageSize);
   }
 
   @ApiResponse({ type: SingerVO })

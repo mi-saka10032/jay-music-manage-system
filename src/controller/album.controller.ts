@@ -54,7 +54,8 @@ export class AlbumController extends BaseController<Album, AlbumVO> {
   @ApiResponse({ type: Boolean })
   @Post('/delete', { description: '根据id删除指定专辑' })
   async deleteAlbumById(@Query('id') id: number): Promise<boolean> {
-    return super.delete(id);
+    await this.albumService.deleteAlbum(id);
+    return true;
   }
 
   @ApiResponse({ type: AlbumListVO })
@@ -77,6 +78,6 @@ export class AlbumController extends BaseController<Album, AlbumVO> {
   @ApiResponse({ type: AlbumVO })
   @Post('/findById', { description: '根据id查询专辑' })
   async findAlbumById(@Query('id') id: number): Promise<AlbumVO> {
-    return super.findById(id);
+    return this.albumService.findAlbumById(id);
   }
 }

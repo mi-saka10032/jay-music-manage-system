@@ -46,7 +46,7 @@ export class SingerService extends BaseService<Singer, SingerVO> {
     return builder;
   }
 
-  async querySinger(
+  async querySingers(
     singerDTO: SingerDTO,
     @defaultPageNo() pageNo: number,
     @defaultPageSize() pageSize: number
@@ -69,7 +69,9 @@ export class SingerService extends BaseService<Singer, SingerVO> {
   }
 
   async findSingerById(id: number): Promise<SingerVO> {
-    const whereOptions: Array<BatchWhereOption> = [{ table: 'singer', column: 'id', key: 'id', value: id, condition: 'equal' }];
+    const whereOptions: Array<BatchWhereOption> = [
+      { table: 'singer', column: 'id', key: 'id', value: id, condition: 'equal' },
+    ];
     // 建立查询池，注入id条件查询
     const builder: SelectQueryBuilder<Singer> = this.createBuilderWithWhereOptions(whereOptions);
     const singer: Singer = await builder.getOne();
