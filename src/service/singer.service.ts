@@ -53,8 +53,8 @@ export class SingerService extends BaseService<Singer, SingerVO> {
   ): Promise<Page<SingerVO>> {
     const { singerName, coverUrl } = singerDTO;
     const whereOptions: Array<BatchWhereOption> = [
-      { table: 'singer', column: 'singerName', value: singerName, condition: 'like' },
-      { table: 'singer', column: 'coverUrl', value: coverUrl, condition: 'like' },
+      { table: 'singer', column: 'singerName', key: 'singerName', value: singerName, condition: 'like' },
+      { table: 'singer', column: 'coverUrl', key: 'coverUrl', value: coverUrl, condition: 'like' },
     ];
     // 建立查询池，注入多条件查询
     const builder: SelectQueryBuilder<Singer> = this.createBuilderWithWhereOptions(whereOptions);
@@ -69,7 +69,7 @@ export class SingerService extends BaseService<Singer, SingerVO> {
   }
 
   async findSingerById(id: number): Promise<SingerVO> {
-    const whereOptions: Array<BatchWhereOption> = [{ table: 'singer', column: 'id', value: id, condition: 'equal' }];
+    const whereOptions: Array<BatchWhereOption> = [{ table: 'singer', column: 'id', key: 'id', value: id, condition: 'equal' }];
     // 建立查询池，注入id条件查询
     const builder: SelectQueryBuilder<Singer> = this.createBuilderWithWhereOptions(whereOptions);
     const singer: Singer = await builder.getOne();

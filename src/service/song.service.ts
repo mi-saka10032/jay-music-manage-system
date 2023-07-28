@@ -242,16 +242,38 @@ export class SongService extends BaseService<Song, SongVO> {
     const { songName, lyric, albumName, singerName, startPublishTime, endPublishTime } = songDTO;
     // 设置查询条件
     const whereOptions: Array<BatchWhereOption> = [
-      { table: 'song', column: 'songName', value: songName, condition: 'like' },
-      { table: 'song', column: 'lyric', value: lyric, condition: 'like' },
-      { table: 'song', column: 'publishTime', value: startPublishTime, condition: 'moreThanOrEqual' },
-      { table: 'song', column: 'publishTime', value: endPublishTime, condition: 'lessThanOrEqual' },
-      { table: 'album', column: 'albumName', value: albumName, condition: 'like' },
-      { table: 'singer', column: 'singerName', value: singerName, condition: 'like' },
+      { table: 'song', column: 'songName', key: 'songName', value: songName, condition: 'like' },
+      { table: 'song', column: 'lyric', key: 'lyric', value: lyric, condition: 'like' },
+      {
+        table: 'song',
+        column: 'publishTime',
+        key: 'startPublishTime',
+        value: startPublishTime,
+        condition: 'moreThanOrEqual',
+      },
+      {
+        table: 'song',
+        column: 'publishTime',
+        key: 'endPublishTime',
+        value: endPublishTime,
+        condition: 'lessThanOrEqual',
+      },
+      { table: 'album', column: 'albumName', key: 'albumName', value: albumName, condition: 'like' },
+      { table: 'singer', column: 'singerName', key: 'singerName', value: singerName, condition: 'like' },
     ];
     // 建立查询池、指定列查询、where条件注入
     const builder: SelectQueryBuilder<Song> = this.createBuilderWithWhereOptions(whereOptions);
     // offset limit
+    // builder.andWhere('song.publishTime BETWEEN :startPublishTime AND :endPublishTime', {
+    //   startPublishTime,
+    //   endPublishTime,
+    // });
+    // if (startPublishTime) {
+    //   builder.andWhere('song.publishTime >= :startPublishTime', { startPublishTime });
+    // }
+    // if (endPublishTime) {
+    //   builder.andWhere('song.publishTime <= :endPublishTime', { endPublishTime });
+    // }
     builder.skip((pageNo - 1) * pageSize);
     builder.take(pageSize);
     // 查询结果转换
@@ -344,7 +366,9 @@ export class SongService extends BaseService<Song, SongVO> {
   }
 
   async findSongById(id: number): Promise<SongVO> {
-    const whereOptions: Array<BatchWhereOption> = [{ table: 'song', column: 'id', value: id, condition: 'equal' }];
+    const whereOptions: Array<BatchWhereOption> = [
+      { table: 'song', column: 'id', key: 'id', value: id, condition: 'equal' },
+    ];
     // 建立查询池
     const builder: SelectQueryBuilder<Song> = this.createBuilderWithWhereOptions(whereOptions);
     const song: Song = await builder.getOne();

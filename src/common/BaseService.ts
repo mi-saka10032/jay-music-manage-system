@@ -21,6 +21,7 @@ import { defaultPageNo, defaultPageSize } from '../decorator/page.decorator';
 export interface BatchWhereOption {
   table: string;
   column: string;
+  key: string;
   value: any | null;
   condition: 'equal' | 'like' | 'moreThan' | 'lessThan' | 'moreThanOrEqual' | 'lessThanOrEqual';
 }
@@ -98,31 +99,31 @@ export abstract class BaseService<T extends BaseEntity, V extends BaseVO> {
    */
   public builderBatchWhere(builder: SelectQueryBuilder<T>, whereOptions: Array<BatchWhereOption>) {
     for (const option of whereOptions) {
-      const { table, column, value, condition } = option;
+      const { table, column, key, value, condition } = option;
       if (value != null) {
         switch (condition) {
           case 'equal': {
-            builder.andWhere(`${table}.${column} = :${column}`, { [column]: value });
+            builder.andWhere(`${table}.${column} = :${key}`, { [key]: value });
             break;
           }
           case 'like': {
-            builder.andWhere(`${table}.${column} LIKE :${column}`, { [column]: `%${value}%` });
+            builder.andWhere(`${table}.${column} LIKE :${key}`, { [key]: `%${value}%` });
             break;
           }
           case 'lessThan': {
-            builder.andWhere(`${table}.${column} < :${column}`, { [column]: value });
+            builder.andWhere(`${table}.${column} < :${key}`, { [key]: value });
             break;
           }
           case 'lessThanOrEqual': {
-            builder.andWhere(`${table}.${column} <= :${column}`, { [column]: value });
+            builder.andWhere(`${table}.${column} <= :${key}`, { [key]: value });
             break;
           }
           case 'moreThan': {
-            builder.andWhere(`${table}.${column} > :${column}`, { [column]: value });
+            builder.andWhere(`${table}.${column} > :${key}`, { [key]: value });
             break;
           }
           case 'moreThanOrEqual': {
-            builder.andWhere(`${table}.${column} >= :${column}`, { [column]: value });
+            builder.andWhere(`${table}.${column} >= :${key}`, { [key]: value });
             break;
           }
         }
