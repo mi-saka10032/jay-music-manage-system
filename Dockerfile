@@ -11,4 +11,4 @@ RUN npm prune --production
 
 EXPOSE 7001
 
-ENTRYPOINT ["npm", "run", "pmstart"]
+CMD ["npm", "run", "pmstart"]
