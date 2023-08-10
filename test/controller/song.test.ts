@@ -1,7 +1,7 @@
 import { afterHandler, beforeHandler, ControllerContext } from '../utils/controllerLifeCycle';
 import { NewSongDTO } from '../../src/music-api/dto/SongDTO';
 import { createHttpRequest } from '@midwayjs/mock';
-import { ErrorCode } from '../../src/common/ErrorCode';
+import { ErrorCode } from '../../src/music-api/code/ErrorCode';
 import { SongVO } from '../../src/music-api/vo/SongVO';
 
 describe('test/controller/song.test.ts', () => {

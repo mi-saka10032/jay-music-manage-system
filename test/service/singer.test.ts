@@ -1,5 +1,5 @@
 import { Singer } from '../../src/entity/singer';
-import { ErrorCode } from '../../src/common/ErrorCode';
+import { ErrorCode } from '../../src/music-api/code/ErrorCode';
 import { SingerService } from '../../src/service/singer.service';
 import { Assert } from '../../src/common/Assert';
 import { Page } from '../../src/common/Page';

@@ -18,7 +18,7 @@ import {
 } from '../music-api/dto/SongDTO';
 import { ArtistResponse, LyricResponse, SingleSong, SingleSongsResponse } from '../common/NeteaseAPIType';
 import { Assert } from '../common/Assert';
-import { ErrorCode } from '../common/ErrorCode';
+import { ErrorCode } from '../music-api/code/ErrorCode';
 import { CloudService } from '../service/cloud.service';
 import { Page } from '../common/Page';
 

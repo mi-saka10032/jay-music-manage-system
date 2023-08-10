@@ -6,7 +6,7 @@ import { Context } from '@midwayjs/koa';
 import { SingerService } from '../service/singer.service';
 import { BaseService } from '../common/BaseService';
 import { Assert } from '../common/Assert';
-import { ErrorCode } from '../common/ErrorCode';
+import { ErrorCode } from '../music-api/code/ErrorCode';
 import { UserService } from '../service/user.service';
 import { Page } from '../common/Page';
 import { NewSingerDTO, SingerDTO } from '../music-api/dto/SingerDTO';

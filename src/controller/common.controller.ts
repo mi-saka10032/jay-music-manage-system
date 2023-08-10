@@ -7,7 +7,7 @@ import { LoginVO } from '../music-api/vo/LoginVO';
 import { SnowflakeIdGenerate } from '../utils/Snowflake';
 import { JwtService } from '@midwayjs/jwt';
 import { Assert } from '../common/Assert';
-import { ErrorCode } from '../common/ErrorCode';
+import { ErrorCode } from '../music-api/code/ErrorCode';
 import { UserContext } from '../common/UserContext';
 import { Constant } from '../common/Constant';
 import { ILogger } from '@midwayjs/core';

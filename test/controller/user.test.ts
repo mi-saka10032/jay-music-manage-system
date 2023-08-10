@@ -1,5 +1,5 @@
 import { createHttpRequest } from '@midwayjs/mock';
-import { ErrorCode } from "../../src/common/ErrorCode";
+import { ErrorCode } from "../../src/music-api/code/ErrorCode";
 import { User } from '../../src/entity/user'
 import { afterHandler, beforeHandler, ControllerContext } from '../utils/controllerLifeCycle';
 

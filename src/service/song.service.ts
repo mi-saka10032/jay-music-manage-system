@@ -9,7 +9,7 @@ import { createReadStream, ReadStream } from 'fs';
 import { IAudioMetadata, parseNodeStream } from 'music-metadata-browser';
 import { ILogger } from '@midwayjs/core';
 import { OSSService } from '@midwayjs/oss';
-import { ErrorCode } from '../common/ErrorCode';
+import { ErrorCode } from '../music-api/code/ErrorCode';
 import { SnowflakeIdGenerate } from '../utils/Snowflake';
 import { AlbumService } from './album.service';
 import { SingerService } from './singer.service';

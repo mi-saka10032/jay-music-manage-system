@@ -1,7 +1,7 @@
 import { IMiddleware } from '@midwayjs/core';
 import { Config, Middleware } from '@midwayjs/decorator';
 import { NextFunction, Context } from '@midwayjs/koa';
-import { ErrorCode } from '../common/ErrorCode';
+import { ErrorCode } from '../music-api/code/ErrorCode';
 
 /**
  * 对接口返回的数据统一包装

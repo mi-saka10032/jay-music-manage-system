@@ -1,5 +1,5 @@
 import { Catch } from '@midwayjs/decorator';
-import { ErrorCode } from '../common/ErrorCode';
+import { ErrorCode } from '../music-api/code/ErrorCode';
 
 @Catch()
 export class DefaultErrorFilter {

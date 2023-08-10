@@ -1,5 +1,5 @@
 import { CommonException } from './CommonException';
-import { ErrorCode } from './ErrorCode';
+import { ErrorCode } from '../music-api/code/ErrorCode';
 
 /**
  * 断言工具类

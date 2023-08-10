@@ -8,7 +8,7 @@ import { RedisService } from '@midwayjs/redis';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@midwayjs/swagger';
 import { encrypt } from '../utils/PasswordEncoder';
 import { Assert } from '../common/Assert';
-import { ErrorCode } from '../common/ErrorCode';
+import { ErrorCode } from '../music-api/code/ErrorCode';
 import { Page } from '../common/Page';
 import { UserVO } from '../music-api/vo/LoginVO';
 

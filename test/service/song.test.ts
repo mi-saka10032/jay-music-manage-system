@@ -3,7 +3,7 @@ import { SongService } from '../../src/service/song.service';
 import { NewSongDTO, SongDTO, UpdateSongDTO } from '../../src/music-api/dto/SongDTO';
 import { SongVO } from '../../src/music-api/vo/SongVO';
 import { Assert } from '../../src/common/Assert';
-import { ErrorCode } from '../../src/common/ErrorCode';
+import { ErrorCode } from '../../src/music-api/code/ErrorCode';
 import { AlbumService } from '../../src/service/album.service';
 import { SingerService } from '../../src/service/singer.service';
 

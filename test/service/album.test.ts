@@ -2,7 +2,7 @@ import { AlbumService } from '../../src/service/album.service';
 import { Album } from '../../src/entity/album';
 import { AlbumVO } from '../../src/music-api/vo/AlbumVO';
 import { Assert } from '../../src/common/Assert';
-import { ErrorCode } from '../../src/common/ErrorCode';
+import { ErrorCode } from '../../src/music-api/code/ErrorCode';
 import { Page } from '../../src/common/Page';
 import { AlbumDTO } from '../../src/music-api/dto/AlbumDTO';
 import { afterHandler, beforeHandler, ServiceContext } from '../utils/serviceLifeCycle';

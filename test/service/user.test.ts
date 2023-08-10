@@ -1,5 +1,5 @@
 import { User } from '../../src/entity/user';
-import { ErrorCode } from '../../src/common/ErrorCode';
+import { ErrorCode } from '../../src/music-api/code/ErrorCode';
 import { UserService } from '../../src/service/user.service';
 import { encrypt } from '../../src/utils/PasswordEncoder';
 import { Assert } from '../../src/common/Assert';

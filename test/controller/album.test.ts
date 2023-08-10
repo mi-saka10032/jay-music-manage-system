@@ -1,7 +1,7 @@
 import { Album } from '../../src/entity/album';
 import { afterHandler, beforeHandler, ControllerContext } from '../utils/controllerLifeCycle';
 import { createHttpRequest } from '@midwayjs/mock';
-import { ErrorCode } from '../../src/common/ErrorCode';
+import { ErrorCode } from '../../src/music-api/code/ErrorCode';
 
 describe('test/controller/album.test.ts', () => {
 

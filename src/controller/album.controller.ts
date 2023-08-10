@@ -8,7 +8,7 @@ import { AlbumService } from '../service/album.service';
 import { BaseService } from '../common/BaseService';
 import { AlbumDTO, NewAlbumDTO } from '../music-api/dto/AlbumDTO';
 import { Assert } from '../common/Assert';
-import { ErrorCode } from '../common/ErrorCode';
+import { ErrorCode } from '../music-api/code/ErrorCode';
 import { Page } from '../common/Page';
 
 @ApiTags(['album'])

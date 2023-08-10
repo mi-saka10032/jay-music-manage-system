@@ -7,7 +7,7 @@ import {
   SingleSongsResponse,
 } from '../common/NeteaseAPIType';
 import { cloudsearch, lyric, artist_detail, Response } from 'NeteaseCloudMusicApi';
-import { ErrorCode } from '../common/ErrorCode';
+import { ErrorCode } from '../music-api/code/ErrorCode';
 import { Assert } from '../common/Assert';
 
 @Provide()
