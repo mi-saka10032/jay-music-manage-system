@@ -8,8 +8,8 @@ export default {
   keys: '1656642815846_4983',
   app: {
     security: {
-      prefix: '/music-api',
-      ignore: ['/music-api/login'],
+      prefix: '/api',
+      ignore: ['/api/login'],
     },
   },
   koa: {

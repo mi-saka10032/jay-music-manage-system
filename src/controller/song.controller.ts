@@ -24,7 +24,7 @@ import { Page } from '../common/Page';
 
 @ApiTags(['song'])
 @ApiBearerAuth()
-@Controller('/music-api/song')
+@Controller('/api/song')
 export class SongController extends BaseController<Song, SongVO> {
   @Inject()
   ctx: Context;

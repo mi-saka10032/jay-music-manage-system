@@ -14,7 +14,7 @@ import { SingerListVO, SingerVO } from '../music-api/vo/SingerVO';
 
 @ApiTags(['singer'])
 @ApiBearerAuth()
-@Controller('/music-api/singer')
+@Controller('/api/singer')
 export class SingerController extends BaseController<Singer, SingerVO> {
   @Inject()
   ctx: Context;

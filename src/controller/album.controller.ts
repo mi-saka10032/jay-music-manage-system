@@ -13,7 +13,7 @@ import { Page } from '../common/Page';
 
 @ApiTags(['album'])
 @ApiBearerAuth()
-@Controller('/music-api/album')
+@Controller('/api/album')
 export class AlbumController extends BaseController<Album, AlbumVO> {
   @Inject()
   ctx: Context;

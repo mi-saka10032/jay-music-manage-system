@@ -16,7 +16,7 @@ import { Validate } from '@midwayjs/validate';
 import { ApiResponse, ApiTags } from '@midwayjs/swagger';
 
 @ApiTags(['common'])
-@Controller('/music-api')
+@Controller('/api')
 export class CommonController {
   @Inject()
   logger: ILogger;

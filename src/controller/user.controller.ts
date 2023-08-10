@@ -14,7 +14,7 @@ import { UserVO } from '../music-api/vo/LoginVO';
 
 @ApiTags(['user'])
 @ApiBearerAuth()
-@Controller('/music-api/user')
+@Controller('/api/user')
 export class UserController extends BaseController<User, UserVO> {
   @Inject()
   ctx: Context;
