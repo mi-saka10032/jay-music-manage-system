@@ -1,6 +1,6 @@
 import { BaseService } from './BaseService';
 import { BaseEntity } from './BaseEntity';
-import { BaseVO } from '../api/vo/BaseVO';
+import { BaseVO } from '../music-api/vo/BaseVO';
 import { Body, Post, Query } from '@midwayjs/decorator';
 import { ApiResponse } from '@midwayjs/swagger';
 import { Page } from './Page';

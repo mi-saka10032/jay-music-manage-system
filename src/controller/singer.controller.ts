@@ -9,12 +9,12 @@ import { Assert } from '../common/Assert';
 import { ErrorCode } from '../common/ErrorCode';
 import { UserService } from '../service/user.service';
 import { Page } from '../common/Page';
-import { NewSingerDTO, SingerDTO } from '../api/dto/SingerDTO';
-import { SingerListVO, SingerVO } from '../api/vo/SingerVO';
+import { NewSingerDTO, SingerDTO } from '../music-api/dto/SingerDTO';
+import { SingerListVO, SingerVO } from '../music-api/vo/SingerVO';
 
 @ApiTags(['singer'])
 @ApiBearerAuth()
-@Controller('/api/singer')
+@Controller('/music-api/singer')
 export class SingerController extends BaseController<Singer, SingerVO> {
   @Inject()
   ctx: Context;

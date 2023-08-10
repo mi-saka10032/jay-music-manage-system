@@ -4,7 +4,7 @@ import { UserService } from '../../src/service/user.service';
 import { encrypt } from '../../src/utils/PasswordEncoder';
 import { Assert } from '../../src/common/Assert';
 import { Page } from '../../src/common/Page';
-import { UserVO } from '../../src/api/vo/LoginVO';
+import { UserVO } from '../../src/music-api/vo/LoginVO';
 import { afterHandler, beforeHandler, ServiceContext } from '../utils/serviceLifeCycle';
 
 describe('test/service/user.test.ts', () => {

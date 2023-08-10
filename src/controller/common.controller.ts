@@ -2,8 +2,8 @@ import { Body, Config, Controller, Inject, Post } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
 import { UserService } from '../service/user.service';
 import { RedisService } from '@midwayjs/redis';
-import { LoginDTO } from '../api/dto/LoginDTO';
-import { LoginVO } from '../api/vo/LoginVO';
+import { LoginDTO } from '../music-api/dto/LoginDTO';
+import { LoginVO } from '../music-api/vo/LoginVO';
 import { SnowflakeIdGenerate } from '../utils/Snowflake';
 import { JwtService } from '@midwayjs/jwt';
 import { Assert } from '../common/Assert';
@@ -16,7 +16,7 @@ import { Validate } from '@midwayjs/validate';
 import { ApiResponse, ApiTags } from '@midwayjs/swagger';
 
 @ApiTags(['common'])
-@Controller('/api')
+@Controller('/music-api')
 export class CommonController {
   @Inject()
   logger: ILogger;

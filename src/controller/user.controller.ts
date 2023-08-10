@@ -10,11 +10,11 @@ import { encrypt } from '../utils/PasswordEncoder';
 import { Assert } from '../common/Assert';
 import { ErrorCode } from '../common/ErrorCode';
 import { Page } from '../common/Page';
-import { UserVO } from '../api/vo/LoginVO';
+import { UserVO } from '../music-api/vo/LoginVO';
 
 @ApiTags(['user'])
 @ApiBearerAuth()
-@Controller('/api/user')
+@Controller('/music-api/user')
 export class UserController extends BaseController<User, UserVO> {
   @Inject()
   ctx: Context;

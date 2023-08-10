@@ -3,8 +3,8 @@ import { ErrorCode } from '../../src/common/ErrorCode';
 import { SingerService } from '../../src/service/singer.service';
 import { Assert } from '../../src/common/Assert';
 import { Page } from '../../src/common/Page';
-import { SingerVO } from '../../src/api/vo/SingerVO';
-import { SingerDTO } from '../../src/api/dto/SingerDTO';
+import { SingerVO } from '../../src/music-api/vo/SingerVO';
+import { SingerDTO } from '../../src/music-api/dto/SingerDTO';
 import { afterHandler, beforeHandler, ServiceContext } from '../utils/serviceLifeCycle';
 
 describe('test/service/singer.test.ts', () => {

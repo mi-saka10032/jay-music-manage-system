@@ -1,11 +1,11 @@
 import { Inject, Provide } from '@midwayjs/decorator';
 import { BaseService, BatchWhereOption } from '../common/BaseService';
 import { Album } from '../entity/album';
-import { AlbumVO } from '../api/vo/AlbumVO';
+import { AlbumVO } from '../music-api/vo/AlbumVO';
 import { InjectEntityModel } from '@midwayjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { Page } from '../common/Page';
-import { AlbumDTO } from '../api/dto/AlbumDTO';
+import { AlbumDTO } from '../music-api/dto/AlbumDTO';
 import { defaultPageNo, defaultPageSize } from '../decorator/page.decorator';
 import { SongService } from './song.service';
 
