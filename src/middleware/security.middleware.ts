@@ -33,7 +33,7 @@ export class SecurityMiddleware {
       if (!/^Bearer$/i.test(scheme)) {
         throw new httpError.UnauthorizedError('缺少Bearer');
       }
-      // 验证token，过期会抛出异常
+      // 验证token，过期会抛出异常 TokenExpiredError
       const jwt = await this.jwtUtil.verify(token, { complete: true });
       // jwt中存储的user信息
       const payload = jwt['payload'];
