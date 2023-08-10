@@ -1,7 +1,7 @@
 import { afterHandler, beforeHandler, ServiceContext } from '../utils/serviceLifeCycle';
 import { SongService } from '../../src/service/song.service';
-import { NewSongDTO, SongDTO, UpdateSongDTO } from '../../src/api/dto/SongDTO';
-import { SongVO } from '../../src/api/vo/SongVO';
+import { NewSongDTO, SongDTO, UpdateSongDTO } from '../../src/music-api/dto/SongDTO';
+import { SongVO } from '../../src/music-api/vo/SongVO';
 import { Assert } from '../../src/common/Assert';
 import { ErrorCode } from '../../src/common/ErrorCode';
 import { AlbumService } from '../../src/service/album.service';

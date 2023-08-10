@@ -8,8 +8,8 @@ export default {
   keys: '1656642815846_4983',
   app: {
     security: {
-      prefix: '/api',
-      ignore: ['/api/login'],
+      prefix: '/music-api',
+      ignore: ['/music-api/login'],
     },
   },
   koa: {
@@ -85,7 +85,7 @@ export default {
     cleanTimeout: 5 * 60 * 1000,
     // base64: boolean，设置原始body是否是base64格式，默认为false，一般用于腾讯云的兼容
     base64: false,
-    // 仅在匹配路径到 /api/song/upload 的时候去解析 body 中的文件信息
+    // 仅在匹配路径到 /music-api/song/upload 的时候去解析 body 中的文件信息
     match: /\/api\/song\/upload/,
   },
   oss: {

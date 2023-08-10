@@ -2,7 +2,7 @@ import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@midwayjs/swagger'
 import { Body, Controller, Files, Inject, Post, Query } from '@midwayjs/decorator';
 import { BaseController } from '../common/BaseController';
 import { Song } from '../entity/song';
-import { SongListVO, SongVO } from '../api/vo/SongVO';
+import { SongListVO, SongVO } from '../music-api/vo/SongVO';
 import { Context } from '@midwayjs/koa';
 import { SongService } from '../service/song.service';
 import { BaseService } from '../common/BaseService';
@@ -15,7 +15,7 @@ import {
   Shelve_Singer_SongDTO,
   SongDTO,
   UpdateSongDTO,
-} from '../api/dto/SongDTO';
+} from '../music-api/dto/SongDTO';
 import { ArtistResponse, LyricResponse, SingleSong, SingleSongsResponse } from '../common/NeteaseAPIType';
 import { Assert } from '../common/Assert';
 import { ErrorCode } from '../common/ErrorCode';
@@ -24,7 +24,7 @@ import { Page } from '../common/Page';
 
 @ApiTags(['song'])
 @ApiBearerAuth()
-@Controller('/api/song')
+@Controller('/music-api/song')
 export class SongController extends BaseController<Song, SongVO> {
   @Inject()
   ctx: Context;

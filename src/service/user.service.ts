@@ -4,7 +4,7 @@ import { User } from '../entity/user';
 import { Repository } from 'typeorm';
 import { BaseService } from '../common/BaseService';
 import { Context } from '@midwayjs/koa';
-import { UserVO } from '../api/vo/LoginVO';
+import { UserVO } from '../music-api/vo/LoginVO';
 
 @Provide()
 export class UserService extends BaseService<User, UserVO> {

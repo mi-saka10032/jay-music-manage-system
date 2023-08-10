@@ -2,18 +2,18 @@ import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@midwayjs/swagger'
 import { Body, Controller, Inject, Post, Query } from '@midwayjs/decorator';
 import { BaseController } from '../common/BaseController';
 import { Album } from '../entity/album';
-import { AlbumListVO, AlbumVO } from '../api/vo/AlbumVO';
+import { AlbumListVO, AlbumVO } from '../music-api/vo/AlbumVO';
 import { Context } from '@midwayjs/koa';
 import { AlbumService } from '../service/album.service';
 import { BaseService } from '../common/BaseService';
-import { AlbumDTO, NewAlbumDTO } from '../api/dto/AlbumDTO';
+import { AlbumDTO, NewAlbumDTO } from '../music-api/dto/AlbumDTO';
 import { Assert } from '../common/Assert';
 import { ErrorCode } from '../common/ErrorCode';
 import { Page } from '../common/Page';
 
 @ApiTags(['album'])
 @ApiBearerAuth()
-@Controller('/api/album')
+@Controller('/music-api/album')
 export class AlbumController extends BaseController<Album, AlbumVO> {
   @Inject()
   ctx: Context;

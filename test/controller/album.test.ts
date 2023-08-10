@@ -16,7 +16,7 @@ describe('test/controller/album.test.ts', () => {
   afterAll(afterHandler.bind(null, context));
 
   // create
-  it('should POST /api/album/create', async () => {
+  it('should POST /music-api/album/create', async () => {
     o = new Album();
     Object.assign(o, {
       albumName: new Date().getTime().toString(),
@@ -32,7 +32,7 @@ describe('test/controller/album.test.ts', () => {
   });
 
   // findById
-  it('should POST /api/album/findById', async () => {
+  it('should POST /music-api/album/findById', async () => {
     const result = await createHttpRequest(context.app).post('/api/album/findById?id=' + o.id)
       .set({ 'Authorization': 'Bearer ' + context.token });
     expect(result.status).toBe(200);
@@ -41,7 +41,7 @@ describe('test/controller/album.test.ts', () => {
   })
 
   // update
-  it('should POST /api/album/update', async () => {
+  it('should POST /music-api/album/update', async () => {
     o.albumName = o.albumName + 'update';
     const result = await createHttpRequest(context.app).post('/api/album/update')
       .set({ 'Authorization': 'Bearer ' + context.token })
@@ -52,7 +52,7 @@ describe('test/controller/album.test.ts', () => {
   })
 
   // page
-  it('should POST /api/album/page', async () => {
+  it('should POST /music-api/album/page', async () => {
     const body = {
       albumName: o.albumName,
       startPublishTime: new Date().getTime() - 10000,
@@ -68,7 +68,7 @@ describe('test/controller/album.test.ts', () => {
   });
 
   // delete
-  it('should POST /api/album/delete', async () => {
+  it('should POST /music-api/album/delete', async () => {
     const result = await createHttpRequest(context.app).post('/api/album/delete?id=' + o.id)
       .set({ 'Authorization': 'Bearer ' + context.token });
     expect(result.status).toBe(200);

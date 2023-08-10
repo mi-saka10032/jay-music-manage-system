@@ -16,7 +16,7 @@ describe('test/controller/user.test.ts', () => {
   afterAll(afterHandler.bind(null, context));
 
   // create
-  it('should POST /api/user/create', async () => {
+  it('should POST /music-api/user/create', async () => {
     o = new User();
     Object.assign(o, {
       username: new Date().getTime().toString(),
@@ -31,7 +31,7 @@ describe('test/controller/user.test.ts', () => {
   });
 
   // update
-  it('should POST /api/user/update', async () => {
+  it('should POST /music-api/user/update', async () => {
     o.username = new Date().getTime().toString();
     const result = await createHttpRequest(context.app).post('/api/user/update')
       .set({ 'Authorization': 'Bearer ' + context.token })
@@ -42,7 +42,7 @@ describe('test/controller/user.test.ts', () => {
   });
 
   // findById
-  it('should POST /api/user/findById', async () => {
+  it('should POST /music-api/user/findById', async () => {
     const result = await createHttpRequest(context.app).post('/api/user/findById?id=' + o.id)
       .set({ 'Authorization': 'Bearer ' + context.token });
     expect(result.status).toBe(200);
@@ -51,7 +51,7 @@ describe('test/controller/user.test.ts', () => {
   });
 
   // findByIds
-  it('should POST /api/user/findByIds', async () => {
+  it('should POST /music-api/user/findByIds', async () => {
     const body = { ids: [o.id] }
     const result = await createHttpRequest(context.app).post('/api/user/findByIds')
       .set({ 'Authorization': 'Bearer ' + context.token })
@@ -61,7 +61,7 @@ describe('test/controller/user.test.ts', () => {
   });
 
   // page
-  it('should POST /api/user/page', async () => {
+  it('should POST /music-api/user/page', async () => {
     const body = { pageNo: 1, pageSize: 10, username: o.username }
     const result = await createHttpRequest(context.app).post('/api/user/page')
       .set({ 'Authorization': 'Bearer ' + context.token })
@@ -71,7 +71,7 @@ describe('test/controller/user.test.ts', () => {
   });
 
   // delete
-  it('should POST /api/user/delete', async () => {
+  it('should POST /music-api/user/delete', async () => {
     const result = await createHttpRequest(context.app).post('/api/user/delete?id=' + o.id)
       .set({ 'Authorization': 'Bearer ' + context.token });
     expect(result.status).toBe(200);
