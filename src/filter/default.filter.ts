@@ -1,5 +1,6 @@
 import { Catch } from '@midwayjs/decorator';
 import { ErrorCode } from '../music-api/code/ErrorCode';
+import SystemResponse from '../music-api/code/SystemResponse';
 
 @Catch()
 export class DefaultErrorFilter {
@@ -10,8 +11,16 @@ export class DefaultErrorFilter {
    */
   async catch(err: Error) {
     if (this.TokenFilterCodes.includes(err.name)) {
-      return { code: ErrorCode.LOGIN_ERROR, msg: err.message };
+      const systemResponse: SystemResponse = {
+        code: ErrorCode.LOGIN_ERROR,
+        msg: err.message,
+      };
+      return systemResponse;
     }
-    return { code: ErrorCode.UN_ERROR, msg: err.message };
+    const systemResponse: SystemResponse = {
+      code: ErrorCode.UN_ERROR,
+      msg: err.message,
+    };
+    return systemResponse;
   }
 }
