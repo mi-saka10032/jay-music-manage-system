@@ -44,17 +44,26 @@ export class CommonController {
   @Post('/login', { description: '公共网关登录' })
   async login(@Body() body: LoginDTO): Promise<LoginVO> {
     const user = await this.userService.findByUsername(body.username);
-    Assert.notNull(user, ErrorCode.UN_ERROR, '用户名或者密码错误');
+    // 登录空判
+    Assert.notNull(user, ErrorCode.UN_ERROR, '用户不存在');
     const flag: boolean = decrypt(body.password, user.password);
+    // 密码校验
     Assert.isTrue(flag, ErrorCode.UN_ERROR, '用户名或者密码错误');
-    const uc: UserContext = new UserContext(user.id, user.username);
-    const at = await this.jwtUtil.sign({ ...uc });
-    const key = Constant.TOKEN + ':' + user.id + ':' + at;
-    const expiresIn = this.jwtConfig.expiresIn;
-    this.cacheUtil.set(key, JSON.stringify(uc), 'EX', expiresIn);
-    const vo = new LoginVO();
-    vo.accessToken = at;
-    vo.expiresIn = expiresIn;
-    return vo;
+    // 创建UserContext上下文类
+    const { id, username } = user;
+    const userContext: UserContext = new UserContext(id, username);
+    // 设置token缓存
+    const accessToken: string = await this.jwtUtil.sign({ ...userContext });
+    const key: string = Constant.getKey(id, accessToken);
+    const expiresInMinutes: number = this.jwtConfig.expiresIn;
+    this.cacheUtil.set(key, JSON.stringify(userContext), 'EX', expiresInMinutes);
+    // 返回登录信息与token
+    const loginVO = new LoginVO();
+    loginVO.username = username;
+    loginVO.roles = ['admin'];
+    loginVO.accessToken = accessToken;
+    const expiresMillMinutes = Date.now() + expiresInMinutes * 1000;
+    loginVO.expires = new Date(expiresMillMinutes);
+    return loginVO;
   }
 }

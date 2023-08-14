@@ -37,7 +37,7 @@ export class SecurityMiddleware {
       const jwt = await this.jwtUtil.verify(token, { complete: true });
       // jwt中存储的user信息
       const payload = jwt['payload'];
-      const key = Constant.TOKEN + ':' + payload.userId + ':' + token;
+      const key = Constant.getKey(payload.userId, token);
       const ucStr = await this.cacheUtil.get(key);
       // 服务器端缓存中存储的user信息
       const uc: UserContext = JSON.parse(ucStr);
