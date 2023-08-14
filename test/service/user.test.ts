@@ -17,7 +17,7 @@ describe('test/service/user.test.ts', () => {
   let i: User = new User();
   let o: UserVO = new UserVO();
   const templateUsername = 'misaka10032';
-  const templatePassword = '123456';
+  const templatePassword = '123456abc';
 
   beforeAll(beforeHandler.bind(null, context, UserService));
 
