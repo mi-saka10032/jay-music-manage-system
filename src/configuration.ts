@@ -11,7 +11,7 @@ import { FormatMiddleware } from './middleware/format.middleware';
 import * as redis from '@midwayjs/redis';
 import * as swagger from '@midwayjs/swagger';
 import * as jwt from '@midwayjs/jwt';
-import * as crossDomain from '@midwayjs/cross-domain';
+// import * as crossDomain from '@midwayjs/cross-domain';
 import { SecurityMiddleware } from './middleware/security.middleware';
 import * as dotenv from 'dotenv';
 import { ILogger, MidwayDecoratorService } from '@midwayjs/core';
@@ -24,7 +24,7 @@ dotenv.config();
 
 @Configuration({
   imports: [
-    crossDomain, // 支持跨域
+    // crossDomain, // 支持跨域
     jwt, // 用于访问凭证签发时进行JWT编码
     swagger, // API接口工具
     redis, // 缓存
