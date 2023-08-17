@@ -15,6 +15,15 @@ export class Assert {
   }
 
   /**
+   * 空断言
+   */
+  static isNull(obj: any, errorCode: number, errorMsg: string) {
+    if (obj) {
+      throw new CommonException(errorCode, errorMsg);
+    }
+  }
+
+  /**
    * 非数组断言
    */
   static notArray(arr: any, errorCode: number, errorMsg: string) {

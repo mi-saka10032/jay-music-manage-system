@@ -4,10 +4,12 @@ import { Singer } from '../entity/singer';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { BaseService, BatchWhereOption } from '../common/BaseService';
 import { SingerVO } from '../music-api/vo/SingerVO';
-import { SingerDTO } from '../music-api/dto/SingerDTO';
+import { NewSingerDTO, SingerDTO } from '../music-api/dto/SingerDTO';
 import { Page } from '../common/Page';
 import { SongService } from './song.service';
 import { defaultPageNo, defaultPageSize } from '../decorator/page.decorator';
+import { Assert } from '../common/Assert';
+import { ErrorCode } from '../music-api/code/ErrorCode';
 
 @Provide()
 export class SingerService extends BaseService<Singer, SingerVO> {
@@ -44,6 +46,16 @@ export class SingerService extends BaseService<Singer, SingerVO> {
     // 条件注入
     this.builderBatchWhere(builder, whereOptions);
     return builder;
+  }
+
+  async createSinger(newSingerDTO: NewSingerDTO): Promise<SingerVO> {
+    const singerName: string = newSingerDTO.singerName;
+    let singer: Singer = await this.model.findOne({ where: { singerName } });
+    Assert.isNull(singer, ErrorCode.UN_ERROR, '已有同名singerName');
+    singer = new Singer();
+    singer.coverUrl = newSingerDTO.coverUrl;
+    singer.singerName = newSingerDTO.singerName;
+    return super.create(singer);
   }
 
   async querySingers(
