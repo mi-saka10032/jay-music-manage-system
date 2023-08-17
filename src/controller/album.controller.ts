@@ -30,14 +30,10 @@ export class AlbumController extends BaseController<Album, AlbumVO> {
   async createAlbum(@Body() param: NewAlbumDTO): Promise<AlbumVO> {
     Assert.baseAssert_CreateObj(param);
     Assert.notNull(param.albumName, ErrorCode.UN_ERROR, 'albumName不能为空');
-    const album: Album = new Album();
     if (param.publishTime) {
       Assert.notDate(param.publishTime, ErrorCode.UN_ERROR, 'publishTime不是一个有效日期');
-      album.publishTime = new Date(param.publishTime);
     }
-    album.albumName = param.albumName;
-    album.coverUrl = param.coverUrl;
-    return super.create(album);
+    return this.albumService.createAlbum(param);
   }
 
   @ApiBody({ type: NewAlbumDTO, isArray: true })

@@ -5,9 +5,11 @@ import { AlbumVO } from '../music-api/vo/AlbumVO';
 import { InjectEntityModel } from '@midwayjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { Page } from '../common/Page';
-import { AlbumDTO } from '../music-api/dto/AlbumDTO';
+import { AlbumDTO, NewAlbumDTO } from '../music-api/dto/AlbumDTO';
 import { defaultPageNo, defaultPageSize } from '../decorator/page.decorator';
 import { SongService } from './song.service';
+import { Assert } from '../common/Assert';
+import { ErrorCode } from '../music-api/code/ErrorCode';
 
 @Provide()
 export class AlbumService extends BaseService<Album, AlbumVO> {
@@ -44,6 +46,17 @@ export class AlbumService extends BaseService<Album, AlbumVO> {
     // 条件注入
     this.builderBatchWhere(builder, whereOptions);
     return builder;
+  }
+
+  async createAlbum(newAlbumDTO: NewAlbumDTO): Promise<AlbumVO> {
+    const albumName: string = newAlbumDTO.albumName;
+    let album: Album = await this.model.findOne({ where: { albumName } });
+    Assert.isNull(album, ErrorCode.UN_ERROR, '已有同名albumName');
+    album = new Album();
+    album.albumName = newAlbumDTO.albumName;
+    album.coverUrl = newAlbumDTO.coverUrl;
+    album.publishTime = new Date(newAlbumDTO.publishTime);
+    return super.create(album);
   }
 
   // 重写page方法，以实现publishTime范围查找

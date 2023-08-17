@@ -32,8 +32,8 @@ export class UserController extends BaseController<User, UserVO> {
   @ApiResponse({ type: UserVO })
   @Post('/create', { description: '创建' })
   async create(@Body() user: User): Promise<UserVO> {
-    Assert.isTrue(user.username !== null, ErrorCode.UN_ERROR, 'username不能为空');
-    Assert.isTrue(user.password !== null, ErrorCode.UN_ERROR, 'password不能为空');
+    Assert.notNull(user.username, ErrorCode.UN_ERROR, 'username不能为空');
+    Assert.notNull(user.password, ErrorCode.UN_ERROR, 'password不能为空');
     Object.assign(user, {
       regTime: new Date(),
       password: encrypt(user.password),
