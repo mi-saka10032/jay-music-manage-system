@@ -153,9 +153,11 @@ export class SongController extends BaseController<Song, SongVO> {
   async updateSingleSongs(@Body() updateSongDTO: UpdateSongDTO): Promise<UpdateSongDTO> {
     Assert.baseAssert_UpdateObj(updateSongDTO);
     Assert.baseAssert_UpdateId(updateSongDTO.id);
+    Assert.notArray(updateSongDTO.singerIds, ErrorCode.UN_ERROR, 'singerIds不是数组');
     return this.songService.updateSong(updateSongDTO);
   }
 
+  /** 该接口已弃用 由 updateSingleSongs 直接实现 */
   @Post('/shelveAlbumId', { description: '关联/取消关联专辑' })
   async shelveAlbumById(@Body() body: Shelve_Album_SongDTO): Promise<boolean> {
     Assert.baseAssert_QueryOne(body);
@@ -166,6 +168,7 @@ export class SongController extends BaseController<Song, SongVO> {
     return true;
   }
 
+  /** 该接口已弃用 由 updateSingleSongs 直接实现 */
   @Post('/shelveSingerId', { description: '关联/取消关联歌手' })
   async shelveSingerById(@Body() body: Shelve_Singer_SongDTO): Promise<boolean> {
     Assert.baseAssert_QueryOne(body);

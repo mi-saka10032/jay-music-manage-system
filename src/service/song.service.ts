@@ -264,16 +264,6 @@ export class SongService extends BaseService<Song, SongVO> {
     // 建立查询池、指定列查询、where条件注入
     const builder: SelectQueryBuilder<Song> = this.createBuilderWithWhereOptions(whereOptions);
     // offset limit
-    // builder.andWhere('song.publishTime BETWEEN :startPublishTime AND :endPublishTime', {
-    //   startPublishTime,
-    //   endPublishTime,
-    // });
-    // if (startPublishTime) {
-    //   builder.andWhere('song.publishTime >= :startPublishTime', { startPublishTime });
-    // }
-    // if (endPublishTime) {
-    //   builder.andWhere('song.publishTime <= :endPublishTime', { endPublishTime });
-    // }
     builder.skip((pageNo - 1) * pageSize);
     builder.take(pageSize);
     // 查询结果转换
@@ -284,6 +274,7 @@ export class SongService extends BaseService<Song, SongVO> {
   }
 
   /**
+   * **已弃用**
    * @description 将Album与Song实体关联/解除关联
    * @param albumId number
    * @param songId number
@@ -307,6 +298,7 @@ export class SongService extends BaseService<Song, SongVO> {
   }
 
   /**
+   **已弃用**
    * @description 将Singer与Song实体关联/解除关联
    * @param singerIds Array<number>
    * @param songId number
@@ -343,11 +335,18 @@ export class SongService extends BaseService<Song, SongVO> {
    * @param updateSongDTO UpdateSongDTO
    */
   async updateSong(updateSongDTO: UpdateSongDTO): Promise<UpdateSongDTO> {
-    const song: Song = new Song();
-    const keys: Array<string> = ['id', 'songName', 'duration', 'lyric', 'musicUrl', 'publishTime'];
-    for (const key of keys) {
-      song[key] = updateSongDTO[key];
-    }
+    const { id, albumId, singerIds } = updateSongDTO;
+    const song: Song = await this.model.findOne({ where: { id }, relations: ['album', 'singers'] });
+    // album relation
+    const album: Album = new Album();
+    album.id = albumId ?? null;
+    song.album = album;
+    // singers relation
+    song.singers = singerIds.map(id => {
+      const singer = new Singer();
+      singer.id = id;
+      return singer;
+    });
     await super.update(song);
     return updateSongDTO;
   }
