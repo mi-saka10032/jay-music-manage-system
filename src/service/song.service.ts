@@ -177,10 +177,16 @@ export class SongService extends BaseService<Song, SongVO> {
     // 新建单曲数据获取id
     const result: SongVO = await super.create(song);
     song.id = result.id;
-    const { album, singer } = newSongDTO;
-    // albumName若存在，则查询获取或新建Album获取实体，更新Album与Song关系
-    if (album.albumName?.length > 0) {
-      const albumResult: Album = await this.queryAndCreateRelatedAlbum(album);
+    const { album, singer, albumId, singerId } = newSongDTO;
+    if ((album && album.albumName?.length > 0) || albumId) {
+      let albumResult: Album = new Album();
+      if (album && album.albumName?.length > 0) {
+        // albumName若存在，则查询获取或新建Album获取实体，更新Album与Song关系
+        albumResult = await this.queryAndCreateRelatedAlbum(album);
+      } else if (albumId) {
+        // 否则取albumId获取Album实体并关联Song
+        albumResult = await this.albumService.model.findOneBy({ id: albumId });
+      }
       if (albumResult.songs?.length > 0) {
         albumResult.songs.push(song);
       } else {
@@ -191,9 +197,14 @@ export class SongService extends BaseService<Song, SongVO> {
       delete albumVO.songs;
       result.album = albumVO;
     }
-    // singers若存在，查询获取或新建Singer获取实体，更新Singer与Song关系
-    if (singer.singerName?.length > 0) {
-      const singerResult: Singer = await this.queryAndCreateRelatedSinger(singer);
+    if ((singer && singer.singerName?.length > 0) || singerId) {
+      // singers若存在，查询获取或新建Singer获取实体，更新Singer与Song关系
+      let singerResult: Singer = new Singer();
+      if (singer && singer.singerName?.length > 0) {
+        singerResult = await this.queryAndCreateRelatedSinger(singer);
+      } else if (singerId) {
+        singerResult = await this.singerService.model.findOneBy({ id: singerId });
+      }
       if (singerResult.songs?.length > 0) {
         singerResult.songs.push(song);
       } else {
