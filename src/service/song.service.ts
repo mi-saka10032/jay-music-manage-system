@@ -348,6 +348,10 @@ export class SongService extends BaseService<Song, SongVO> {
   async updateSong(updateSongDTO: UpdateSongDTO): Promise<UpdateSongDTO> {
     const { id, albumId, singerIds } = updateSongDTO;
     const song: Song = await this.model.findOne({ where: { id }, relations: ['album', 'singers'] });
+    const keys: Array<string> = ['songName', 'duration', 'lyric', 'musicUrl', 'publishTime'];
+    for (const key of keys) {
+      song[key] = updateSongDTO[key];
+    }
     // album relation
     const album: Album = new Album();
     album.id = albumId ?? null;
