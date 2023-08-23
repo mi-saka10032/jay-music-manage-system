@@ -199,7 +199,7 @@ export class SongService extends BaseService<Song, SongVO> {
         albumResult = await this.queryAndCreateRelatedAlbum(album);
       } else if (albumId) {
         // 否则取albumId获取Album实体并关联Song
-        albumResult = await this.albumService.model.findOneBy({ id: albumId });
+        albumResult = await this.albumService.model.findOne({ where: { id: albumId }, relations: ['songs'] });
       }
       if (albumResult.songs?.length > 0) {
         albumResult.songs.push(song);
@@ -217,7 +217,7 @@ export class SongService extends BaseService<Song, SongVO> {
       if (singer && singer.singerName?.length > 0) {
         singerResult = await this.queryAndCreateRelatedSinger(singer);
       } else if (singerId) {
-        singerResult = await this.singerService.model.findOneBy({ id: singerId });
+        singerResult = await this.singerService.model.findOne({ where: { id: singerId }, relations: ['songs'] });
       }
       if (singerResult.songs?.length > 0) {
         singerResult.songs.push(song);
