@@ -254,6 +254,19 @@ export class SongService extends BaseService<Song, SongVO> {
   }
 
   /**
+   * @description 将[Array<Song>, number]类型转换为Page<SongVo>类型
+   * @param manyAndCountResult getManyAndCount的await返回值
+   * @param pageNo
+   * @param pageSize
+   */
+  private transformPageVO(manyAndCountResult: [Array<Song>, number], pageNo: number, pageSize: number): Page<SongVO> {
+    const [songList, total] = manyAndCountResult;
+    const songListVO: Array<SongVO> = new Array<SongVO>();
+    Object.assign(songListVO, songList);
+    return Page.build(songListVO, total, pageNo, pageSize);
+  }
+
+  /**
    * @description 歌曲分页查询 涉及到联表操作
    * @param songDTO SongDTO
    * @param pageNo number
@@ -292,10 +305,8 @@ export class SongService extends BaseService<Song, SongVO> {
     builder.skip((pageNo - 1) * pageSize);
     builder.take(pageSize);
     // 查询结果转换
-    const [songList, total]: [Array<Song>, number] = await builder.getManyAndCount();
-    const songListVO: Array<SongVO> = new Array<SongVO>();
-    Object.assign(songListVO, songList);
-    return Page.build(songListVO, total, pageNo, pageSize);
+    const result = await builder.getManyAndCount();
+    return this.transformPageVO(result, pageNo, pageSize);
   }
 
   /**
@@ -403,5 +414,41 @@ export class SongService extends BaseService<Song, SongVO> {
     const songVO: SongVO = new SongVO();
     Object.assign(songVO, song);
     return songVO;
+  }
+
+  async findSongsByAlbumId(
+    albumId: number,
+    @defaultPageNo() pageNo: number,
+    @defaultPageSize() pageSize: number
+  ): Promise<Page<SongVO>> {
+    const albumWhere: Array<BatchWhereOption> = [
+      { table: 'album', column: 'id', key: 'id', value: albumId, condition: 'equal' },
+    ];
+    const builder: SelectQueryBuilder<Song> = this.model.createQueryBuilder('song').leftJoin('song.album', 'album');
+    const songSelect: Array<string> = this.getColumns().map((column: string) => `song.${column}`);
+    builder.select(songSelect);
+    this.builderBatchWhere(builder, albumWhere);
+    builder.skip((pageNo - 1) * pageSize);
+    builder.take(pageSize);
+    const relatedAlbumResult = await builder.getManyAndCount();
+    return this.transformPageVO(relatedAlbumResult, pageNo, pageSize);
+  }
+
+  async findSongsBySingerId(
+    singerId: number,
+    @defaultPageNo() pageNo: number,
+    @defaultPageSize() pageSize: number
+  ): Promise<Page<SongVO>> {
+    const singerWhere: Array<BatchWhereOption> = [
+      { table: 'singer', column: 'id', key: 'id', value: singerId, condition: 'equal' },
+    ];
+    const builder: SelectQueryBuilder<Song> = this.model.createQueryBuilder('song').leftJoin('song.singers', 'singer');
+    const songSelect: Array<string> = this.getColumns().map((column: string) => `song.${column}`);
+    builder.select(songSelect);
+    this.builderBatchWhere(builder, singerWhere);
+    builder.skip((pageNo - 1) * pageSize);
+    builder.take(pageSize);
+    const relatedSingerResult = await builder.getManyAndCount();
+    return this.transformPageVO(relatedSingerResult, pageNo, pageSize);
   }
 }

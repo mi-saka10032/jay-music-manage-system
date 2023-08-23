@@ -11,6 +11,8 @@ import {
   AudioFile,
   AudioFormatOption,
   NewSongDTO,
+  Relation_Album_SongDTO,
+  Relation_Singer_SongDTO,
   Shelve_Album_SongDTO,
   Shelve_Singer_SongDTO,
   SongDTO,
@@ -180,15 +182,33 @@ export class SongController extends BaseController<Song, SongVO> {
   }
 
   @Post('/findById', { description: '根据id查询歌曲' })
-  async findSongById(@Query('id') id: number): Promise<SongVO> {
+  async findSingleSongById(@Query('id') id: number): Promise<SongVO> {
     Assert.baseAssert_FindId(id);
     return this.songService.findSongById(id);
   }
 
   @Post('/delete', { description: '删除单曲' })
-  async delete(@Query('id') id: number): Promise<boolean> {
+  async deleteSingleSongById(@Query('id') id: number): Promise<boolean> {
     Assert.baseAssert_DeleteId(id);
     await this.songService.deleteSong(id);
     return true;
+  }
+
+  @ApiResponse({ type: Relation_Album_SongDTO })
+  @Post('/pageByAlbumId', { description: '根据专辑id分页查询歌曲' })
+  async querySingleSongsByAlbumId(@Body() relation: Relation_Album_SongDTO): Promise<Page<SongVO>> {
+    Assert.baseAssert_QueryPage(relation);
+    Assert.notNull(relation.albumId, ErrorCode.UN_ERROR, '专辑id不能为空');
+    const { albumId, pageNo, pageSize } = relation;
+    return this.songService.findSongsByAlbumId(albumId, pageNo, pageSize);
+  }
+
+  @ApiResponse({ type: Relation_Singer_SongDTO })
+  @Post('/pageSingerId', { description: '根据歌手id分页查询歌曲' })
+  async querySingleSongsBySingerId(@Body() relation: Relation_Singer_SongDTO): Promise<Page<SongVO>> {
+    Assert.baseAssert_QueryPage(relation);
+    Assert.notNull(relation.singerId, ErrorCode.UN_ERROR, '歌手id不能为空');
+    const { singerId, pageNo, pageSize } = relation;
+    return this.songService.findSongsBySingerId(singerId, pageNo, pageSize);
   }
 }
