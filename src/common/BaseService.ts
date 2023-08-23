@@ -137,15 +137,7 @@ export abstract class BaseService<T extends BaseEntity, V extends BaseVO> {
    */
   private async save(o: T): Promise<V> {
     o.updaterId = this.ctx.userContext.userId;
-    let result: T;
-    // 重复数据并发新增or更新易触发异常抛出，触发后选择直接返回当前数据值不执行更新 | 乐观锁兜底
-    try {
-      result = await this.getModel().save(o);
-    } catch (error: any) {
-      this.logger.warn(String(error));
-      const where = { id: o.id } as FindOptionsWhere<T>;
-      result = await this.getModel().findOneBy(where);
-    }
+    const result: T = await this.getModel().save(o);
     const resultVO: V = this.getVO();
     return Object.assign(resultVO, result);
   }

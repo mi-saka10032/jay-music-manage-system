@@ -126,6 +126,7 @@ export class SongService extends BaseService<Song, SongVO> {
   /**
    * @description 查询并新增关联的Album专辑数据 新增歌曲方法时独有功能，意为新增歌曲时附带新增尚未添加的Album
    * @param albumDTO NewAlbumDTO
+   * @return 此处返回值必须是Album实体类，因为后续后续还要执行关联实体更新，必须使用实体类
    */
   private async queryAndCreateRelatedAlbum(albumDTO: NewAlbumDTO): Promise<Album> {
     const { albumName, coverUrl, publishTime } = albumDTO;
@@ -134,12 +135,18 @@ export class SongService extends BaseService<Song, SongVO> {
     if (result?.id) {
       return result;
     } else {
-      const album: Album = new Album();
+      let album: Album = new Album();
       album.albumName = albumName;
       album.coverUrl = coverUrl;
       album.publishTime = publishTime;
-      const { id }: AlbumVO = await this.albumService.create(album);
-      album.id = id;
+      // 批量新增同名 Album 数据并发新增，易触发异常抛出，触发后选择直接二次查询数据值，不执行更新 | 乐观锁兜底
+      try {
+        const newAlbum: AlbumVO = await this.albumService.create(album);
+        album.id = newAlbum.id;
+      } catch (error: any) {
+        this.logger.error(error.toString());
+        album = await this.albumService.model.findOne({ where: { albumName }, relations: ['songs'] });
+      }
       return album;
     }
   }
@@ -147,6 +154,7 @@ export class SongService extends BaseService<Song, SongVO> {
   /**
    * @description 查询并新增关联的Singer歌手数据 新增歌曲方法时独有功能，意为新增歌曲时附带新增尚未添加的Singer
    * @param singer NewSingerDTO
+   * @return 此处返回值必须是Singer实体类，因为后续后续还要执行关联实体更新，必须使用实体类
    */
   private async queryAndCreateRelatedSinger(singer: NewSingerDTO): Promise<Singer> {
     const { singerName, coverUrl } = singer;
@@ -155,11 +163,17 @@ export class SongService extends BaseService<Song, SongVO> {
     if (result?.id) {
       return result;
     } else {
-      const singer: Singer = new Singer();
+      let singer: Singer = new Singer();
       singer.singerName = singerName;
       singer.coverUrl = coverUrl;
-      const { id }: SingerVO = await this.singerService.create(singer);
-      singer.id = id;
+      // 批量新增同名 Singer 数据并发新增，易触发异常抛出，触发后选择直接二次查询数据值，不执行更新 | 乐观锁兜底
+      try {
+        const newSinger: SingerVO = await this.singerService.create(singer);
+        singer.id = newSinger.id;
+      } catch (error: any) {
+        this.logger.error(error.toString());
+        singer = await this.singerService.model.findOne({ where: { singerName }, relations: ['songs'] });
+      }
       return singer;
     }
   }
