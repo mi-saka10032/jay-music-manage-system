@@ -41,9 +41,14 @@ export async function beforeHandler(context: ControllerContext) {
       const o = await userService.create(user);
       console.log(o);
     }
-    // 获取一个访问凭证
     const commonController = await ctx.requestContext.getAsync(CommonController);
-    const loginVO = await commonController.login({ username, password });
+    // 获取验证码 不直接调用接口因为获取不了图片真正text 从源码可知 验证码id是 ${idPrefix}:${id}的格式 这里手动获取captchaCode
+    const imageResult = await commonController.captchaService.image();
+    const captchaPrefixId: string = commonController.captchaService.captcha.idPrefix;
+    const captchaId: string = imageResult.id;
+    const captchaCode: string = await commonController.captchaService.cacheManager.get(`${captchaPrefixId}:${captchaId}`);
+    const loginVO = await commonController.login({ username, password, captchaId, captchaCode });
+    // 获取一个访问凭证
     context.token = loginVO.accessToken;
   } catch (err) {
     console.error('test beforeAll error', err);

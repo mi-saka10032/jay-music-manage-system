@@ -16,7 +16,7 @@ describe('test/controller/singer.test.ts', () => {
   afterAll(afterHandler.bind(null, context));
 
   // create
-  it('should POST /music-api/singer/create', async () => {
+  it('should POST /api/singer/create', async () => {
     o = new Singer();
     Object.assign(o, {
       singerName: Date.now().toString(),
@@ -30,7 +30,7 @@ describe('test/controller/singer.test.ts', () => {
   });
 
   // findById
-  it('should POST /music-api/singer/findById', async () => {
+  it('should POST /api/singer/findById', async () => {
     const result = await createHttpRequest(context.app).post('/api/singer/findById?id=' + o.id)
       .set({ 'Authorization': 'Bearer ' + context.token });
     expect(result.status).toBe(200);
@@ -39,7 +39,7 @@ describe('test/controller/singer.test.ts', () => {
   });
 
   // update
-  it('should POST /music-api/singer/update', async () => {
+  it('should POST /api/singer/update', async () => {
     o.singerName = o.singerName + 'update';
     const result = await createHttpRequest(context.app).post('/api/singer/update')
       .set({ 'Authorization': 'Bearer ' + context.token })
@@ -50,7 +50,7 @@ describe('test/controller/singer.test.ts', () => {
   })
 
   // page
-  it('should POST /music-api/singer/page', async () => {
+  it('should POST /api/singer/page', async () => {
     const body = { pageNo: 1, pageSize: 10, singerName: o.singerName }
     const result = await createHttpRequest(context.app).post('/api/singer/page')
       .set({ 'Authorization': 'Bearer ' + context.token })
@@ -60,7 +60,7 @@ describe('test/controller/singer.test.ts', () => {
   });
 
   // delete
-  it('should POST /music-api/singer/delete', async () => {
+  it('should POST /api/singer/delete', async () => {
     const result = await createHttpRequest(context.app).post('/api/singer/delete?id=' + o.id)
       .set({ 'Authorization': 'Bearer ' + context.token });
     expect(result.status).toBe(200);

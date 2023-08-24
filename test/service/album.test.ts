@@ -37,7 +37,7 @@ describe('test/service/album.test.ts', () => {
     });
     o = await context.service.create(i);
     id = o.id;
-    Assert.notEmpty(id, ErrorCode.UN_ERROR, '创建专辑失败');
+    Assert.notEmpty(id.toString(), ErrorCode.UN_ERROR, '创建专辑失败');
 
     // find
     o = await context.service.findAlbumById(id);

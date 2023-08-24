@@ -18,6 +18,7 @@ import { ILogger, MidwayDecoratorService } from '@midwayjs/core';
 import * as upload from '@midwayjs/upload';
 import * as oss from '@midwayjs/oss';
 import { PAGE_NO_KEY, PAGE_SIZE_KEY } from './decorator/page.decorator';
+import * as captcha from '@midwayjs/captcha';
 
 // 初始化环境变量
 dotenv.config();
@@ -37,6 +38,7 @@ dotenv.config();
     },
     upload,
     oss,
+    captcha,
   ],
   importConfigs: [join(__dirname, './config')],
 })

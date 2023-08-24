@@ -53,6 +53,21 @@ describe('test/service/song.test.ts', () => {
     albumId = Number(o.album.id);
     singerId = Number(o.singers[0].id);
 
+    // update
+    Object.assign(u, o);
+    u.albumId = albumId;
+    u.singerIds = [singerId];
+    await context.service.updateSong(u);
+    await context.service.findSongById(songId);
+
+    // findSongsByAlbumId
+    const a_pages = await context.service.findSongsByAlbumId(albumId, 1, 10);
+    Assert.isTrue(a_pages.total > 0, ErrorCode.UN_ERROR, '分页查询关联专辑的歌曲失败');
+
+    // findSongsBySingerId
+    const s_pages = await context.service.findSongsBySingerId(singerId, 1, 10);
+    Assert.isTrue(s_pages.total > 0, ErrorCode.UN_ERROR, '分页查询关联专辑的歌曲失败');
+
     // unshelve album&singer
     await Promise.all([
       context.service.shelveAlbum_Song(albumId, songId, false),
@@ -64,11 +79,6 @@ describe('test/service/song.test.ts', () => {
     Assert.isTrue(o.album == null, ErrorCode.UN_ERROR, '解除歌曲与专辑关联失败');
     Assert.isTrue(o.singers == null || o.singers.length === 0, ErrorCode.UN_ERROR, '解除歌曲与歌手关联失败');
     Assert.notNull(o, ErrorCode.UN_ERROR, '查询歌曲失败');
-
-    // update
-    Object.assign(u, o);
-    await context.service.updateSong(u);
-    await context.service.findSongById(songId);
 
     // page
     const songDTO = new SongDTO();

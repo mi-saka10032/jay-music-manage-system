@@ -9,7 +9,7 @@ export default {
   app: {
     security: {
       prefix: '/api',
-      ignore: ['/api/login'],
+      ignore: ['/api/login', '/api/captchaGet'],
     },
   },
   koa: {
@@ -97,5 +97,22 @@ export default {
       endpoint: process.env.OSS_ENDPOINT,
       timeout: '60s',
     },
+  },
+  captcha: {
+    default: {
+      // 默认配置
+      size: 4,
+      noise: 2,
+      width: 120,
+      height: 40,
+    },
+    image: {
+      // 最终会合并 default 配置
+      type: 'mixed',
+    },
+    formula: {}, // 最终会合并 default 配置
+    text: {}, // 最终会合并 default 配置
+    expirationTime: 60, // 有效期60s
+    idPrefix: 'midway:vc',
   },
 } as MidwayConfig;

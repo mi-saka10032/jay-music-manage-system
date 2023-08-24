@@ -5,6 +5,7 @@
   "private": true,
   "dependencies": {
     "@midwayjs/bootstrap": "^3.0.0",
+    "@midwayjs/captcha": "^3.12.2",
     "@midwayjs/core": "^3.0.0",
     "@midwayjs/cross-domain": "^3.3.11",
     "@midwayjs/decorator": "^3.0.0",

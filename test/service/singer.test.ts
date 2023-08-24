@@ -34,7 +34,7 @@ describe('test/service/singer.test.ts', () => {
     });
     o = await context.service.create(i);
     id = o.id;
-    Assert.notEmpty(id, ErrorCode.UN_ERROR, '创建歌手名称失败');
+    Assert.notEmpty(id.toString(), ErrorCode.UN_ERROR, '创建歌手名称失败');
 
     // find
     o = await context.service.findById(id);
