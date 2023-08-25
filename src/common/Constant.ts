@@ -8,4 +8,8 @@ export class Constant {
   static getKey(id: number, token: string): string {
     return `${Constant.TOKEN}:${id}:${token}`;
   }
+
+  static getSocketId(): string {
+    return 'socketId';
+  }
 }

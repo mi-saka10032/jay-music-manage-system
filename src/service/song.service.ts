@@ -76,7 +76,7 @@ export class SongService extends BaseService<Song, SongVO> {
    * @param filepath upload组件将上传的文件做成了临时文件目录的模式，因此使用filepath即可获得相应文件路径
    * @private
    */
-  private async uploadOSSService(filepath: string): Promise<string> {
+  async uploadOSSService(filepath: string): Promise<string> {
     const filename = this.idGenerate.generate();
     this.logger.info('startUploadOSS');
     const result = await this.ossService.put(`/music/${String(filename)}.mp3`, filepath);
@@ -93,13 +93,8 @@ export class SongService extends BaseService<Song, SongVO> {
    */
   async analyzeAudioFile(audioFile: AudioFile): Promise<AudioFormatOption> {
     const { filename, data: filepath } = audioFile;
-    const [metadata, musicUrl]: [IAudioMetadata, string] = await Promise.all([
-      this.analyzeAudioMetadata(filepath),
-      this.uploadOSSService(filepath),
-    ]);
+    const metadata: IAudioMetadata = await this.analyzeAudioMetadata(filepath);
     const audioOption: AudioFormatOption = new AudioFormatOption();
-    // 绑定oss的文件url
-    audioOption.musicUrl = musicUrl;
     // 已知可返回的信息：歌名、歌曲时长、专辑名、歌手名，其中专辑名和歌手名需要在controller二次查表确认做关联
     audioOption.songName = metadata.common.title ?? ''; // 解析结果歌名title为空则赋空值，下面判断准确度后再默认赋予不带后缀的文件名
     audioOption.album = new NewAlbumDTO();

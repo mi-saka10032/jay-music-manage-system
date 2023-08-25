@@ -6,7 +6,7 @@ import { SongListVO, SongVO } from '../music-api/vo/SongVO';
 import { Context } from '@midwayjs/koa';
 import { SongService } from '../service/song.service';
 import { BaseService } from '../common/BaseService';
-import { ILogger } from '@midwayjs/core';
+import { App, ILogger } from '@midwayjs/core';
 import {
   AudioFile,
   AudioFormatOption,
@@ -23,6 +23,9 @@ import { Assert } from '../common/Assert';
 import { ErrorCode } from '../music-api/code/ErrorCode';
 import { CloudService } from '../service/cloud.service';
 import { Page } from '../common/Page';
+import { Application } from '@midwayjs/ws';
+import { Constant } from '../common/Constant';
+import { SocketSongEnum, SocketSongResponse } from '../music-api/code/SocketSongEnum';
 
 @ApiTags(['song'])
 @ApiBearerAuth()
@@ -44,6 +47,22 @@ export class SongController extends BaseController<Song, SongVO> {
   @Inject()
   cloudService: CloudService;
 
+  @App('webSocket')
+  wsApp: Application;
+
+  private sendSocket(data: object): void {
+    // 判断cookie-socketId来获取指定socket实例
+    const socketId = this.ctx.cookies.get(Constant.getSocketId(), { signed: false, encrypt: false });
+    if (socketId) {
+      this.wsApp.clients.forEach(ws => {
+        // 已连接实例的socketId已在连接时为Context绑定
+        if (ws['socketId'] === socketId) {
+          ws.send(JSON.stringify(data));
+        }
+      });
+    }
+  }
+
   /**
    * @description 该方法包含四部分逻辑，与db无交互
    * 1. 首先接收上传文件并解析文件内部的音频信息；
@@ -60,17 +79,27 @@ export class SongController extends BaseController<Song, SongVO> {
     });
     return Promise.all(
       audioFiles.map(async (audioFile: AudioFile): Promise<AudioFormatOption> => {
-        this.logger.info('analysis-start');
+        const { filename, data: filepath } = audioFile;
+        const songProgress: SocketSongResponse = { originalName: filename, status: SocketSongEnum.Start };
+        this.logger.info('Start');
+        this.sendSocket(songProgress);
         // 执行音频文件解析，返回解析结果
         const audioFormatOption: AudioFormatOption = await this.songService.analyzeAudioFile(audioFile);
-        this.logger.info('analysis&oss-complete');
+        songProgress.status = SocketSongEnum.BasicAnalysis;
+        this.logger.info('BasicAnalysisComplete');
+        this.sendSocket(songProgress);
+        // 绑定oss的文件url
+        audioFormatOption.musicUrl = await this.songService.uploadOSSService(filepath);
+        songProgress.status = SocketSongEnum.OSS;
+        this.logger.info('OSSComplete');
+        this.sendSocket(songProgress);
         // isExact决定解析结果是否准确，不准确则不会调用网易云cloudService查询精确信息
         const { isExact } = audioFormatOption;
         // songName和singerName作为解析结果的一部分，用来确认和匹配cloudService查询结果
         const songName = audioFormatOption.songName;
         const singerName = audioFormatOption.singer.singerName;
         if (isExact) {
-          this.logger.info('neteaseAPI-start');
+          this.logger.info('NetEaseAPIStart');
           // 首次调用cloudService，根据关键词查询单曲信息
           const keywords: string = songName + '-' + singerName;
           const response: SingleSongsResponse = await this.cloudService.getMusicsWithKeywords(keywords);
@@ -97,7 +126,6 @@ export class SongController extends BaseController<Song, SongVO> {
                 audioFormatOption.publishTime = new Date(singleSong.publishTime);
                 audioFormatOption.album.publishTime = new Date(singleSong.publishTime);
               }
-              this.logger.info('matched song %j', JSON.stringify(singleSong));
               break;
             }
           }
@@ -112,9 +140,11 @@ export class SongController extends BaseController<Song, SongVO> {
             // 解析结果的歌手照片赋值
             audioFormatOption.singer.coverUrl = artistResponse.data.artist.avatar;
           }
-          this.logger.info('neteaseAPI-complete');
+          this.logger.info('NetEaseAPIComplete');
         }
-        this.logger.info('analysis-end');
+        this.logger.info('DetailAnalysisEnd');
+        songProgress.status = SocketSongEnum.DetailAnalysis;
+        this.sendSocket(songProgress);
         return audioFormatOption;
       })
     );
