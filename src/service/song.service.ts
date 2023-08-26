@@ -23,6 +23,7 @@ import { NewSingerDTO } from '../music-api/dto/SingerDTO';
 import { Page } from '../common/Page';
 import { CommonException } from '../common/CommonException';
 import { defaultPageNo, defaultPageSize } from '../decorator/page.decorator';
+import { RedisService } from '@midwayjs/redis';
 
 @Provide()
 export class SongService extends BaseService<Song, SongVO> {
@@ -59,6 +60,9 @@ export class SongService extends BaseService<Song, SongVO> {
   @Inject()
   userService: UserService;
 
+  @Inject()
+  cacheUtil: RedisService;
+
   /**
    * @description 解析音频文件的相关信息
    * @param filepath upload组件将上传的文件做成了临时文件目录的模式，因此使用filepath即可获得相应文件路径
@@ -66,9 +70,7 @@ export class SongService extends BaseService<Song, SongVO> {
   private async analyzeAudioMetadata(filepath: string): Promise<IAudioMetadata> {
     const stream: ReadStream = createReadStream(filepath);
     // MusicMetadata自带解析Stream完成后关闭Stream，无需手动关闭ReadStream
-    const metadata: IAudioMetadata = await parseNodeStream(stream);
-    this.logger.info('AudioMetadata %j', JSON.stringify(metadata));
-    return metadata;
+    return await parseNodeStream(stream);
   }
 
   /**
@@ -134,7 +136,7 @@ export class SongService extends BaseService<Song, SongVO> {
       album.albumName = albumName;
       album.coverUrl = coverUrl;
       album.publishTime = publishTime;
-      // 批量新增同名 Album 数据并发新增，易触发异常抛出，触发后选择直接二次查询数据值，不执行更新 | 乐观锁兜底
+      // 批量新增同名 Album 数据并发新增，易触发异常抛出，触发后选择直接二次查询数据值，不执行更新
       try {
         const newAlbum: AlbumVO = await this.albumService.create(album);
         album.id = newAlbum.id;
@@ -161,7 +163,7 @@ export class SongService extends BaseService<Song, SongVO> {
       let singer: Singer = new Singer();
       singer.singerName = singerName;
       singer.coverUrl = coverUrl;
-      // 批量新增同名 Singer 数据并发新增，易触发异常抛出，触发后选择直接二次查询数据值，不执行更新 | 乐观锁兜底
+      // 批量新增同名 Singer 数据并发新增，易触发异常抛出，触发后选择直接二次查询数据值，不执行更新
       try {
         const newSinger: SingerVO = await this.singerService.create(singer);
         singer.id = newSinger.id;
@@ -170,6 +172,25 @@ export class SongService extends BaseService<Song, SongVO> {
         singer = await this.singerService.model.findOne({ where: { singerName }, relations: ['songs'] });
       }
       return singer;
+    }
+  }
+
+  /**
+   * @description redis乐观锁 解决批量createSong导致的死锁问题
+   * 外部方法调用时注意最后需要释放锁
+   * 注意该方法仅对单线程环境有效，在分布式系统下还需要额外判断进程
+   * @param key redisKey
+   */
+  private async acquireLock(key) {
+    // isLock : 1 | 0
+    const isLock = await this.cacheUtil.setnx(key, Math.random().toString());
+    if (isLock === 1) {
+      // 如果获得了锁 直接返回true
+      return true;
+    } else {
+      // 如果锁未被释放，则等待一段时间后重试
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return this.acquireLock(key);
     }
   }
 
@@ -201,10 +222,23 @@ export class SongService extends BaseService<Song, SongVO> {
       } else {
         albumResult.songs = [song];
       }
-      const albumVO: AlbumVO = await this.albumService.update(albumResult);
-      // 去除多余的songs属性
-      delete albumVO.songs;
-      result.album = albumVO;
+      // 批量更新同名专辑会触发死锁，使用redis锁解决
+      const lockKey = 'album-lock';
+      if (await this.acquireLock(lockKey)) {
+        try {
+          const albumVO: AlbumVO = await this.albumService.update(albumResult);
+          // 去除多余的songs属性
+          delete albumVO.songs;
+          result.album = albumVO;
+        } catch (error: any) {
+          this.logger.error(error.toString());
+        } finally {
+          // 注意释放redis锁
+          await this.cacheUtil.del(lockKey);
+        }
+      } else {
+        this.logger.warn('Could not acquire lock');
+      }
     }
     if ((singer && singer.singerName?.length > 0) || singerId) {
       // singers若存在，查询获取或新建Singer获取实体，更新Singer与Song关系
@@ -219,10 +253,23 @@ export class SongService extends BaseService<Song, SongVO> {
       } else {
         singerResult.songs = [song];
       }
-      const singerVO: SingerVO = await this.singerService.update(singerResult);
-      // 去除多余的songs属性
-      delete singerVO.songs;
-      result.singers = [singerVO];
+      // 批量更新同名歌手会触发死锁，使用redis锁解决
+      const lockKey = 'singer-lock';
+      if (await this.acquireLock(lockKey)) {
+        try {
+          const singerVO: SingerVO = await this.singerService.update(singerResult);
+          // 去除多余的songs属性
+          delete singerVO.songs;
+          result.singers = [singerVO];
+        } catch (error: any) {
+          this.logger.error(error.toString());
+        } finally {
+          // 注意释放redis锁
+          await this.cacheUtil.del(lockKey);
+        }
+      } else {
+        this.logger.warn('Could not acquire lock');
+      }
     }
     return result;
   }
