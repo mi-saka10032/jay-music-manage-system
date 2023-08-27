@@ -49,7 +49,7 @@
   },
   "scripts": {
     "start": "NODE_ENV=production node ./bootstrap.js",
-    "pmstart": "NODE_ENV=production pm2 start ./bootstrap.js --name midway_app -i 2",
+    "pmstart": "NODE_ENV=production pm2 start ./bootstrap.js --name midway_app -i 1",
     "dev": "cross-env NODE_ENV=local midway-bin dev --ts",
     "test": "midway-bin test --ts",
     "cov": "midway-bin cov --ts",
