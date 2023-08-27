@@ -6,7 +6,10 @@ import { SongListVO, SongVO } from '../music-api/vo/SongVO';
 import { Context } from '@midwayjs/koa';
 import { SongService } from '../service/song.service';
 import { BaseService } from '../common/BaseService';
-import { App, ILogger } from '@midwayjs/core';
+import {
+  // App,
+  ILogger,
+} from '@midwayjs/core';
 import {
   AudioFile,
   AudioFormatOption,
@@ -23,8 +26,8 @@ import { Assert } from '../common/Assert';
 import { ErrorCode } from '../music-api/code/ErrorCode';
 import { CloudService } from '../service/cloud.service';
 import { Page } from '../common/Page';
-import { Application } from '@midwayjs/ws';
-import { Constant } from '../common/Constant';
+// import { Application } from '@midwayjs/ws';
+// import { Constant } from '../common/Constant';
 import { SocketSongEnum, SocketSongResponse } from '../music-api/code/SocketSongEnum';
 
 @ApiTags(['song'])
@@ -47,21 +50,21 @@ export class SongController extends BaseController<Song, SongVO> {
   @Inject()
   cloudService: CloudService;
 
-  @App('webSocket')
-  wsApp: Application;
+  // @App('webSocket')
+  // wsApp: Application;
 
-  private sendSocket(data: object): void {
-    // 判断cookie-socketId来获取指定socket实例
-    const socketId = this.ctx.cookies.get(Constant.getSocketId(), { signed: false, encrypt: false });
-    if (socketId) {
-      this.wsApp.clients.forEach(ws => {
-        // 已连接实例的socketId已在连接时为Context绑定
-        if (ws['socketId'] === socketId) {
-          ws.send(JSON.stringify(data));
-        }
-      });
-    }
-  }
+  // private sendSocket(data: object): void {
+  //   // 判断cookie-socketId来获取指定socket实例
+  //   const socketId = this.ctx.cookies.get(Constant.getSocketId(), { signed: false, encrypt: false });
+  //   if (socketId) {
+  //     this.wsApp.clients.forEach(ws => {
+  //       // 已连接实例的socketId已在连接时为Context绑定
+  //       if (ws['socketId'] === socketId) {
+  //         ws.send(JSON.stringify(data));
+  //       }
+  //     });
+  //   }
+  // }
 
   /**
    * @description 该方法包含四部分逻辑，与db无交互
@@ -82,17 +85,17 @@ export class SongController extends BaseController<Song, SongVO> {
         const { filename, data: filepath } = audioFile;
         const songProgress: SocketSongResponse = { originalName: filename, status: SocketSongEnum.Start };
         this.logger.info('Start');
-        this.sendSocket(songProgress);
+        // this.sendSocket(songProgress);
         // 执行音频文件解析，返回解析结果
         const audioFormatOption: AudioFormatOption = await this.songService.analyzeAudioFile(audioFile);
         songProgress.status = SocketSongEnum.BasicAnalysis;
         this.logger.info('BasicAnalysisComplete');
-        this.sendSocket(songProgress);
+        // this.sendSocket(songProgress);
         // 绑定oss的文件url
         audioFormatOption.musicUrl = await this.songService.uploadOSSService(filepath);
         songProgress.status = SocketSongEnum.OSS;
         this.logger.info('OSSComplete');
-        this.sendSocket(songProgress);
+        // this.sendSocket(songProgress);
         // isExact决定解析结果是否准确，不准确则不会调用网易云cloudService查询精确信息
         const { isExact } = audioFormatOption;
         // songName和singerName作为解析结果的一部分，用来确认和匹配cloudService查询结果
@@ -144,7 +147,7 @@ export class SongController extends BaseController<Song, SongVO> {
         }
         this.logger.info('DetailAnalysisEnd');
         songProgress.status = SocketSongEnum.DetailAnalysis;
-        this.sendSocket(songProgress);
+        // this.sendSocket(songProgress);
         return audioFormatOption;
       })
     );

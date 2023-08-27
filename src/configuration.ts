@@ -19,7 +19,7 @@ import * as upload from '@midwayjs/upload';
 import * as oss from '@midwayjs/oss';
 import { PAGE_NO_KEY, PAGE_SIZE_KEY } from './decorator/page.decorator';
 import * as captcha from '@midwayjs/captcha';
-import * as ws from '@midwayjs/ws';
+// import * as ws from '@midwayjs/ws';
 
 // 初始化环境变量
 dotenv.config();
@@ -32,7 +32,7 @@ dotenv.config();
     redis, // 缓存
     orm, // 数据库操作
     koa,
-    ws,
+    // ws,
     validate,
     {
       component: info,

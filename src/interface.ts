@@ -1,5 +1,5 @@
 import '@midwayjs/core';
-import '@midwayjs/ws';
+// import '@midwayjs/ws';
 import { UserContext } from './common/UserContext';
 
 declare module '@midwayjs/core' {
@@ -8,8 +8,8 @@ declare module '@midwayjs/core' {
   }
 }
 
-declare module '@midwayjs/ws' {
-  interface Context {
-    socketId: string;
-  }
-}
+// declare module '@midwayjs/ws' {
+//   interface Context {
+//     socketId: string;
+//   }
+// }
