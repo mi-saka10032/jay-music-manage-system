@@ -25,7 +25,7 @@ export default {
         username: process.env.MYSQL_USERNAME,
         password: process.env.MYSQL_PASSWORD,
         database: 'jay_music_manage_system',
-        synchronize: true, // 如果第一次使用，不存在表，有同步的需求可以写 true
+        synchronize: false, // 如果第一次使用，不存在表，有同步的需求可以写 true
         logging: true,
         entities: ['**/entity/*{.ts,.js}'],
       },
