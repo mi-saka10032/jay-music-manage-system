@@ -108,15 +108,17 @@ export default {
       accessKeySecret: process.env.OSS_ACESSKEY_SECRET,
     },
   },
-  captcha: {
+  cache: {
     store: redisStore,
     options: {
-      host: 'localhost', // default value
-      port: 6379, // default value
+      host: process.env.REDIS_HOST,
+      port: process.env.REDIS_PORT,
       db: 0,
-      keyPrefix: 'midway:vc',
-      ttl: 100,
+      keyPrefix: 'cache:',
+      ttl: 60,
     },
+  },
+  captcha: {
     default: {
       // 默认配置
       size: 4,
@@ -128,5 +130,9 @@ export default {
       // 最终会合并 default 配置
       type: 'mixed',
     },
+    formula: {}, // 最终会合并 default 配置
+    text: {}, // 最终会合并 default 配置
+    expirationTime: 60,
+    idPrefix: 'midway:vc',
   },
 } as MidwayConfig;
