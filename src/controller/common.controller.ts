@@ -78,6 +78,9 @@ export class CommonController {
   @Get('/captchaGet', { description: '获取验证码' })
   async getImageCaptcha(): Promise<Captcha> {
     const { id, imageBase64 } = await this.captchaService.image({ width: 120, height: 40 });
+    const captchaPrefixId: string = this.captchaService.captcha.idPrefix;
+    const text = await this.captchaService.cacheManager.get(`${captchaPrefixId}:${id}`);
+    console.log(text);
     return {
       id, // 验证码 id
       imageBase64, // 验证码 SVG 图片的 base64 数据，可以直接放入前端的 img 标签内

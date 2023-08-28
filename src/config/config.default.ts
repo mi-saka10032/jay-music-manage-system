@@ -1,5 +1,6 @@
 import { MidwayConfig } from '@midwayjs/core';
 import { uploadWhiteList } from '@midwayjs/upload';
+import * as redisStore from 'cache-manager-ioredis';
 import { join } from 'path';
 import { tmpdir } from 'os';
 
@@ -108,6 +109,14 @@ export default {
     },
   },
   captcha: {
+    store: redisStore,
+    options: {
+      host: 'localhost', // default value
+      port: 6379, // default value
+      db: 0,
+      keyPrefix: 'midway:vc',
+      ttl: 100,
+    },
     default: {
       // 默认配置
       size: 4,
@@ -119,9 +128,5 @@ export default {
       // 最终会合并 default 配置
       type: 'mixed',
     },
-    formula: {}, // 最终会合并 default 配置
-    text: {}, // 最终会合并 default 配置
-    expirationTime: 60, // 有效期60s
-    idPrefix: 'midway:vc',
   },
 } as MidwayConfig;

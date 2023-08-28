@@ -21,6 +21,7 @@
     "@midwayjs/validate": "^3.0.0",
     "@midwayjs/ws": "^3.12.3",
     "bcryptjs": "^2.4.3",
+    "cache-manager-ioredis": "^2.1.0",
     "dotenv": "^16.0.1",
     "music-metadata-browser": "^2.5.10",
     "mysql2": "^2.3.3",
