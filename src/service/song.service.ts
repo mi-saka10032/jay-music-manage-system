@@ -8,7 +8,7 @@ import { AudioFile, AudioFormatOption, NewSongDTO, SongDTO, UpdateSongDTO } from
 import { createReadStream, ReadStream } from 'fs';
 import { IAudioMetadata, parseNodeStream } from 'music-metadata-browser';
 import { ILogger } from '@midwayjs/core';
-import { OSSService } from '@midwayjs/oss';
+import { OSSServiceFactory, OSSSTSService } from '@midwayjs/oss';
 import { ErrorCode } from '../music-api/code/ErrorCode';
 import { SnowflakeIdGenerate } from '../utils/Snowflake';
 import { AlbumService } from './album.service';
@@ -24,6 +24,7 @@ import { Page } from '../common/Page';
 import { CommonException } from '../common/CommonException';
 import { defaultPageNo, defaultPageSize } from '../decorator/page.decorator';
 import { RedisService } from '@midwayjs/redis';
+import { OSSSTSTokenVO } from '../music-api/vo/OSSVO';
 
 @Provide()
 export class SongService extends BaseService<Song, SongVO> {
@@ -46,7 +47,7 @@ export class SongService extends BaseService<Song, SongVO> {
   logger: ILogger;
 
   @Inject()
-  ossService: OSSService;
+  ossServiceFactory: OSSServiceFactory;
 
   @Inject()
   idGenerate: SnowflakeIdGenerate;
@@ -81,9 +82,21 @@ export class SongService extends BaseService<Song, SongVO> {
   async uploadOSSService(filepath: string): Promise<string> {
     const filename = this.idGenerate.generate();
     this.logger.info('startUploadOSS');
-    const result = await this.ossService.put(`/music/${String(filename)}.mp3`, filepath);
+    const result = await this.ossServiceFactory.get('normal').put(`/music/${String(filename)}.mp3`, filepath);
     this.logger.info('OSSResult %j', JSON.stringify(result));
     return result.url;
+  }
+
+  async sendSTSService(): Promise<OSSSTSTokenVO> {
+    const roleArn = process.env.OSS_ROLEARN;
+    const result = await this.ossServiceFactory.get<OSSSTSService>('sts').assumeRole(roleArn);
+    return {
+      accessKeyId: result.credentials.AccessKeyId,
+      accessKeySecret: result.credentials.AccessKeySecret,
+      stsToken: result.credentials.SecurityToken,
+      region: process.env.OSS_ENDPOINT,
+      bucket: process.env.OSS_BUCKET_NAME,
+    };
   }
 
   /**

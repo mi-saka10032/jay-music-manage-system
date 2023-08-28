@@ -89,13 +89,22 @@ export default {
     match: /\/api\/song\/upload/,
   },
   oss: {
-    // normal oss bucket
-    client: {
+    clients: {
+      // normal oss bucket
+      normal: {
+        bucket: process.env.OSS_BUCKET_NAME,
+        endpoint: process.env.OSS_ENDPOINT,
+        timeout: '60s',
+      },
+      // sts oss bucket
+      // if config.sts == true, oss will create STS client
+      sts: {
+        sts: true,
+      },
+    },
+    default: {
       accessKeyId: process.env.OSS_ACCESSKEY_ID,
       accessKeySecret: process.env.OSS_ACESSKEY_SECRET,
-      bucket: process.env.OSS_BUCKET_NAME,
-      endpoint: process.env.OSS_ENDPOINT,
-      timeout: '60s',
     },
   },
   captcha: {

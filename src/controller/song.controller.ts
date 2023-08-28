@@ -1,5 +1,5 @@
 import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@midwayjs/swagger';
-import { Body, Controller, Files, Inject, Post, Query } from '@midwayjs/decorator';
+import { Body, Controller, Files, Get, Inject, Post, Query } from '@midwayjs/decorator';
 import { BaseController } from '../common/BaseController';
 import { Song } from '../entity/song';
 import { SongListVO, SongVO } from '../music-api/vo/SongVO';
@@ -26,6 +26,7 @@ import { Page } from '../common/Page';
 import { Application } from '@midwayjs/ws';
 import { Constant } from '../common/Constant';
 import { SocketSongEnum, SocketSongResponse } from '../music-api/code/SocketSongEnum';
+import { OSSSTSTokenVO } from '../music-api/vo/OSSVO';
 
 @ApiTags(['song'])
 @ApiBearerAuth()
@@ -240,5 +241,11 @@ export class SongController extends BaseController<Song, SongVO> {
     Assert.notNull(relation.singerId, ErrorCode.UN_ERROR, '歌手id不能为空');
     const { singerId, pageNo, pageSize } = relation;
     return this.songService.findSongsBySingerId(singerId, pageNo, pageSize);
+  }
+
+  @ApiResponse({ type: OSSSTSTokenVO })
+  @Get('/getSTS', { description: '获取阿里云授予客户端的临时STSToken权限' })
+  async getSTSToken() {
+    return this.songService.sendSTSService();
   }
 }
