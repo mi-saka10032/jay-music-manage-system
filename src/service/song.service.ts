@@ -94,7 +94,7 @@ export class SongService extends BaseService<Song, SongVO> {
       accessKeyId: result.credentials.AccessKeyId,
       accessKeySecret: result.credentials.AccessKeySecret,
       stsToken: result.credentials.SecurityToken,
-      region: process.env.OSS_ENDPOINT,
+      region: process.env.OSS_PREFIX,
       bucket: process.env.OSS_BUCKET_NAME,
     };
   }
