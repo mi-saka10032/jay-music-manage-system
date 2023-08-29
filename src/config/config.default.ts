@@ -48,7 +48,7 @@ export default {
   // swagger配置
   swagger: {
     title: 'jay-music-manage-system',
-    description: 'Jay音乐管理系统',
+    description: '音乐管理系统',
     auth: {
       authType: 'bearer',
     },

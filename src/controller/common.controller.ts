@@ -80,7 +80,7 @@ export class CommonController {
     const { id, imageBase64 } = await this.captchaService.image({ width: 120, height: 40 });
     const captchaPrefixId: string = this.captchaService.captcha.idPrefix;
     const text = await this.captchaService.cacheManager.get(`${captchaPrefixId}:${id}`);
-    console.log(text);
+    this.logger.info('当前验证的文本信息是：%s', text);
     return {
       id, // 验证码 id
       imageBase64, // 验证码 SVG 图片的 base64 数据，可以直接放入前端的 img 标签内
