@@ -6,7 +6,7 @@ import { SongListVO, SongVO } from '../music-api/vo/SongVO';
 import { Context } from '@midwayjs/koa';
 import { SongService } from '../service/song.service';
 import { BaseService } from '../common/BaseService';
-import { App, ILogger } from '@midwayjs/core';
+import { ILogger } from '@midwayjs/core';
 import {
   AudioFile,
   AudioFormatOption,
@@ -23,10 +23,10 @@ import { Assert } from '../common/Assert';
 import { ErrorCode } from '../music-api/code/ErrorCode';
 import { CloudService } from '../service/cloud.service';
 import { Page } from '../common/Page';
-import { Application } from '@midwayjs/ws';
 import { Constant } from '../common/Constant';
 import { SocketSongEnum, SocketSongResponse } from '../music-api/code/SocketSongEnum';
 import { OSSSTSTokenVO } from '../music-api/vo/OSSVO';
+import { RedisService } from '@midwayjs/redis';
 
 @ApiTags(['song'])
 @ApiBearerAuth()
@@ -48,20 +48,14 @@ export class SongController extends BaseController<Song, SongVO> {
   @Inject()
   cloudService: CloudService;
 
-  @App('webSocket')
-  wsApp: Application;
+  @Inject()
+  cacheUtil: RedisService;
 
-  private sendSocket(data: object): void {
+  private sendSocket(data: SocketSongResponse): void {
     // 判断cookie-socketId来获取指定socket实例
-    const socketId = this.ctx.cookies.get(Constant.getSocketId(), { signed: false, encrypt: false });
-    if (socketId) {
-      this.wsApp.clients.forEach(ws => {
-        // 已连接实例的socketId已在连接时为Context绑定
-        if (ws['socketId'] === socketId) {
-          ws.send(JSON.stringify(data));
-        }
-      });
-    }
+    const id = this.ctx.cookies.get(Constant.getSocketId(), { signed: false, encrypt: false });
+    // 通过redis pub/sub 向所有已连接订阅redis的ws服务器发布消息
+    this.cacheUtil.publish(Constant.REDIS_CHANNEL, JSON.stringify({ id, data }));
   }
 
   /**
@@ -215,6 +209,7 @@ export class SongController extends BaseController<Song, SongVO> {
   @Post('/findById', { description: '根据id查询歌曲' })
   async findSingleSongById(@Query('id') id: number): Promise<SongVO> {
     Assert.baseAssert_FindId(id);
+    await this.cacheUtil.publish(Constant.REDIS_CHANNEL, '根据id查询歌曲捏');
     return this.songService.findSongById(id);
   }
 
