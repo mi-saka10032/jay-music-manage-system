@@ -2,7 +2,6 @@
   "name": "jay-music-manage-system",
   "version": "1.0.0",
   "description": "jay-music-manage-system",
-  "private": true,
   "dependencies": {
     "@midwayjs/bootstrap": "^3.0.0",
     "@midwayjs/captcha": "^3.12.2",
@@ -46,7 +45,7 @@
     "typescript": "~4.6.0"
   },
   "engines": {
-    "node": ">=12.0.0"
+    "node": ">=16.0.0"
   },
   "scripts": {
     "start": "cross-env NODE_ENV=production node ./bootstrap.js",
