@@ -209,7 +209,6 @@ export class SongController extends BaseController<Song, SongVO> {
   @Post('/findById', { description: '根据id查询歌曲' })
   async findSingleSongById(@Query('id') id: number): Promise<SongVO> {
     Assert.baseAssert_FindId(id);
-    await this.cacheUtil.publish(Constant.REDIS_CHANNEL, '根据id查询歌曲捏');
     return this.songService.findSongById(id);
   }
 
