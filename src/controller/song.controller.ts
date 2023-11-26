@@ -17,8 +17,8 @@ import {
   Shelve_Singer_SongDTO,
   SongDTO,
   UpdateSongDTO,
+  OSSDTO,
 } from '../music-api/dto/SongDTO';
-import { ArtistResponse, LyricResponse, SingleSong, SingleSongsResponse } from '../common/NeteaseAPIType';
 import { Assert } from '../common/Assert';
 import { ErrorCode } from '../music-api/code/ErrorCode';
 import { CloudService } from '../service/cloud.service';
@@ -27,6 +27,8 @@ import { Constant } from '../common/Constant';
 import { SocketSongEnum, SocketSongResponse } from '../music-api/code/SocketSongEnum';
 import { OSSSTSTokenVO } from '../music-api/vo/OSSVO';
 import { RedisService } from '@midwayjs/redis';
+import axios from 'axios';
+import { ReadStream } from 'fs';
 
 @ApiTags(['song'])
 @ApiBearerAuth()
@@ -94,48 +96,7 @@ export class SongController extends BaseController<Song, SongVO> {
         const songName = audioFormatOption.songName;
         const singerName = audioFormatOption.singer.singerName;
         if (isExact) {
-          this.logger.info('NetEaseAPIStart');
-          // 首次调用cloudService，根据关键词查询单曲信息
-          const keywords: string = songName + '-' + singerName;
-          const response: SingleSongsResponse = await this.cloudService.getMusicsWithKeywords(keywords);
-          let musicId = 0;
-          let artistId = 0;
-          const songs: Array<SingleSong> = response.result.songs;
-          // 遍历歌曲信息，过滤查找第一个符合条件的歌曲对象
-          for (let i = 0; i < songs.length; i++) {
-            const singleSong: SingleSong = songs[i];
-            const curSongName: string = singleSong.name;
-            // 如果歌手ar列表长度为0，说明歌曲不含歌手信息，跳过本次循环
-            if (singleSong.ar.length === 0) continue;
-            const { id: curSingerId, name: curSingerName } = singleSong.ar[0];
-            // 歌曲名称和歌手名称均匹配，进入赋值环节，否则继续遍历查找
-            if (songName === curSongName && singerName === curSingerName) {
-              // 赋值歌曲id和歌手id，用于后续cloudService二次调用
-              musicId = singleSong.id;
-              artistId = curSingerId;
-              // 专辑名称albumName 专辑封面coverUrl 赋值
-              audioFormatOption.album.albumName = singleSong.al.name ?? '';
-              audioFormatOption.album.coverUrl = singleSong.al.picUrl ?? '';
-              // 专辑和单曲的发布时间赋值
-              if (singleSong.publishTime !== 0 && singleSong.publishTime != null) {
-                audioFormatOption.publishTime = new Date(singleSong.publishTime);
-                audioFormatOption.album.publishTime = new Date(singleSong.publishTime);
-              }
-              break;
-            }
-          }
-          // 判断id以二次调用cloudService，查找歌词和歌手
-          if (musicId !== 0 && artistId !== 0) {
-            const [lyricResponse, artistResponse]: [LyricResponse, ArtistResponse] = await Promise.all([
-              this.cloudService.getLyricWithId(musicId),
-              this.cloudService.getArtistWithId(artistId),
-            ]);
-            // 解析结果的歌词赋值
-            audioFormatOption.lyric = lyricResponse.lrc.lyric;
-            // 解析结果的歌手照片赋值
-            audioFormatOption.singer.coverUrl = artistResponse.data.artist.avatar;
-          }
-          this.logger.info('NetEaseAPIComplete');
+          await this.cloudService.exactlyAudioAnalysis(audioFormatOption, songName, singerName);
         }
         this.logger.info('DetailAnalysisEnd');
         songProgress.status = SocketSongEnum.DetailAnalysis;
@@ -143,6 +104,42 @@ export class SongController extends BaseController<Song, SongVO> {
         return audioFormatOption;
       })
     );
+  }
+
+  @Post('/uploadByOSS', { description: '上传OSS链接并返回音频解析结果' })
+  async uploadByOSS(@Body() ossDTO: OSSDTO): Promise<AudioFormatOption> {
+    const { ossPath, filename } = ossDTO;
+    const songProgress: SocketSongResponse = { originalName: filename, status: SocketSongEnum.Start };
+    this.logger.info('Start');
+    this.sendSocket(songProgress);
+    // axios解析OSS链接，获取文件stream流
+    const response = await axios<ReadStream>({
+      method: 'get',
+      url: ossPath,
+      responseType: 'stream',
+    });
+    // 执行音频文件解析，返回解析结果
+    const audioFormatOption: AudioFormatOption = await this.songService.analyzeAudioStream(
+      response.data,
+      ossDTO.filename
+    );
+    songProgress.status = SocketSongEnum.BasicAnalysis;
+    this.logger.info('BasicAnalysisComplete');
+    this.sendSocket(songProgress);
+    // 跳过OSS解析步骤（因为没有）
+    // isExact决定解析结果是否准确，不准确则不会调用网易云cloudService查询精确信息
+    const { isExact } = audioFormatOption;
+    // songName和singerName作为解析结果的一部分，用来确认和匹配cloudService查询结果
+    const songName = audioFormatOption.songName;
+    const singerName = audioFormatOption.singer.singerName;
+    if (isExact) {
+      await this.cloudService.exactlyAudioAnalysis(audioFormatOption, songName, singerName);
+    }
+    this.logger.info('DetailAnalysisEnd');
+    songProgress.status = SocketSongEnum.DetailAnalysis;
+    this.sendSocket(songProgress);
+    audioFormatOption.musicUrl = ossPath;
+    return audioFormatOption;
   }
 
   @Post('/create', { description: '新增单曲' })

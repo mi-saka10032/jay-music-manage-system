@@ -68,8 +68,16 @@ export class SongService extends BaseService<Song, SongVO> {
    * @description 解析音频文件的相关信息
    * @param filepath upload组件将上传的文件做成了临时文件目录的模式，因此使用filepath即可获得相应文件路径
    */
-  private async analyzeAudioMetadata(filepath: string): Promise<IAudioMetadata> {
+  private async analyzeAudioMetadataByPath(filepath: string): Promise<IAudioMetadata> {
     const stream: ReadStream = createReadStream(filepath);
+    // MusicMetadata自带解析Stream完成后关闭Stream，无需手动关闭ReadStream
+    return await parseNodeStream(stream);
+  }
+
+  /**
+   * @description 解析音频文件流
+   */
+  private async analyzeAudioStreamByStream(stream: ReadStream): Promise<IAudioMetadata> {
     // MusicMetadata自带解析Stream完成后关闭Stream，无需手动关闭ReadStream
     return await parseNodeStream(stream);
   }
@@ -100,15 +108,12 @@ export class SongService extends BaseService<Song, SongVO> {
   }
 
   /**
-   * @description 分析音频文件
-   * 1. 解析音频结果
-   * 2. 上传OSS服务
-   * 3. 返回最终分析结果
-   * @param audioFile upload组件接收上传文件处理形成的格式
+   * @description 分析音频文件最终结果
+   * 2. 返回最终分析结果
+   * @param metadata 初步解析的音频结果
+   * @param filename 用于逻辑识别的原上传文件名
    */
-  async analyzeAudioFile(audioFile: AudioFile): Promise<AudioFormatOption> {
-    const { filename, data: filepath } = audioFile;
-    const metadata: IAudioMetadata = await this.analyzeAudioMetadata(filepath);
+  getFinalAnalysisResult(metadata: IAudioMetadata, filename: string): AudioFormatOption {
     const audioOption: AudioFormatOption = new AudioFormatOption();
     // 已知可返回的信息：歌名、歌曲时长、专辑名、歌手名，其中专辑名和歌手名需要在controller二次查表确认做关联
     audioOption.songName = metadata.common.title ?? ''; // 解析结果歌名title为空则赋空值，下面判断准确度后再默认赋予不带后缀的文件名
@@ -131,6 +136,28 @@ export class SongService extends BaseService<Song, SongVO> {
       audioOption.songName = lastIndex > 0 ? filename.substring(0, lastIndex) : filename; // 解析结果不准确 默认取上传文件的不带后缀名的名称
     }
     return audioOption;
+  }
+
+  /**
+   * @description 分析音频文件
+   * 1. 解析音频结果
+   * @param audioFile upload组件接收上传文件处理形成的格式
+   */
+  async analyzeAudioFile(audioFile: AudioFile): Promise<AudioFormatOption> {
+    const { filename, data: filepath } = audioFile;
+    const metadata: IAudioMetadata = await this.analyzeAudioMetadataByPath(filepath);
+    return this.getFinalAnalysisResult(metadata, filename);
+  }
+
+  /**
+   * @description 分析音频文件流
+   * 1. 解析音频结果
+   * @param stream OSS链接解析后的stream流
+   * @param filename 用于逻辑识别的原上传文件名
+   */
+  async analyzeAudioStream(stream: ReadStream, filename: string): Promise<AudioFormatOption> {
+    const metadata: IAudioMetadata = await this.analyzeAudioStreamByStream(stream);
+    return this.getFinalAnalysisResult(metadata, filename);
   }
 
   /**
