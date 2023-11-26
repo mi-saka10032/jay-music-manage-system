@@ -10,7 +10,7 @@ export default {
   app: {
     security: {
       prefix: '/api',
-      ignore: ['/api/login', '/api/captchaGet'],
+      ignore: ['/api/login', '/api/captchaGet', '/api/song/page', '/api/album/page', '/api/singer/page'],
     },
   },
   koa: {
