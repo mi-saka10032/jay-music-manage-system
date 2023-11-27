@@ -22,6 +22,7 @@ export interface SingleSong {
   ar: Array<AR>;
   al: AL;
   publishTime: number;
+  dt: number; // 单位毫秒
 }
 
 // 查找歌曲信息的返回值结构

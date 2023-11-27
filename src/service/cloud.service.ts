@@ -84,6 +84,8 @@ export class CloudService implements NETEASEAPI {
           audioFormatOption.publishTime = new Date(singleSong.publishTime);
           audioFormatOption.album.publishTime = new Date(singleSong.publishTime);
         }
+        // duration赋值
+        audioFormatOption.duration = singleSong.dt > 0 ? Math.round(singleSong.dt / 1000) : audioFormatOption.duration;
         break;
       }
     }
