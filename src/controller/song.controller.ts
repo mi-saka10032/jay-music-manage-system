@@ -144,15 +144,19 @@ export class SongController extends BaseController<Song, SongVO> {
 
   @Post('/create', { description: '新增单曲' })
   async createSong(@Body() newSongDTO: NewSongDTO): Promise<SongVO> {
-    Assert.notNull(newSongDTO.songName, ErrorCode.UN_ERROR, '歌曲名称不能为空');
-    Assert.notNull(newSongDTO.duration, ErrorCode.UN_ERROR, '歌曲时长不能为空');
-    Assert.notNull(newSongDTO.musicUrl, ErrorCode.UN_ERROR, '歌曲链接不能为空');
     return this.songService.createSong(newSongDTO);
   }
 
   @ApiBody({ type: NewSongDTO, isArray: true })
   @Post('/batchCreate', { description: '批量新增单曲' })
   async batchCreateSingleSongs(@Body() newSongDTOList: Array<NewSongDTO>): Promise<Array<SongVO>> {
+    for (let i = 0; i < newSongDTOList.length; i++) {
+      const newSongDTO = newSongDTOList[i];
+      const songName = newSongDTO.songName;
+      Assert.notNull(newSongDTO.songName, ErrorCode.UN_ERROR, `${songName}歌曲名称不能为空`);
+      Assert.notNull(newSongDTO.duration, ErrorCode.UN_ERROR, `${songName}歌曲时长不能为空`);
+      Assert.notNull(newSongDTO.musicUrl, ErrorCode.UN_ERROR, `${songName}歌曲链接不能为空`);
+    }
     return Promise.all(newSongDTOList.map((newSongDTO: NewSongDTO) => this.createSong(newSongDTO)));
   }
 
