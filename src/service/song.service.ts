@@ -249,22 +249,22 @@ export class SongService extends BaseService<Song, SongVO> {
     song.id = result.id;
     const { album, singer, albumId, singerId } = newSongDTO;
     if ((album && album.albumName?.length > 0) || albumId) {
-      let albumResult: Album = new Album();
-      if (album && album.albumName?.length > 0) {
-        // albumName若存在，则查询获取或新建Album获取实体，更新Album与Song关系
-        albumResult = await this.queryAndCreateRelatedAlbum(album);
-      } else if (albumId) {
-        // 否则取albumId获取Album实体并关联Song
-        albumResult = await this.albumService.model.findOne({ where: { id: albumId }, relations: ['songs'] });
-      }
-      if (albumResult.songs?.length > 0) {
-        albumResult.songs.push(song);
-      } else {
-        albumResult.songs = [song];
-      }
       // 批量更新同名专辑会触发死锁，使用redis锁解决
       const lockKey = 'album-lock';
       if (await this.acquireLock(lockKey)) {
+        let albumResult: Album = new Album();
+        if (album && album.albumName?.length > 0) {
+          // albumName若存在，则查询获取或新建Album获取实体，更新Album与Song关系
+          albumResult = await this.queryAndCreateRelatedAlbum(album);
+        } else if (albumId) {
+          // 否则取albumId获取Album实体并关联Song
+          albumResult = await this.albumService.model.findOne({ where: { id: albumId }, relations: ['songs'] });
+        }
+        if (albumResult.songs?.length > 0) {
+          albumResult.songs.push(song);
+        } else {
+          albumResult.songs = [song];
+        }
         try {
           const albumVO: AlbumVO = await this.albumService.update(albumResult);
           // 去除多余的songs属性
@@ -281,21 +281,22 @@ export class SongService extends BaseService<Song, SongVO> {
       }
     }
     if ((singer && singer.singerName?.length > 0) || singerId) {
-      // singers若存在，查询获取或新建Singer获取实体，更新Singer与Song关系
-      let singerResult: Singer = new Singer();
-      if (singer && singer.singerName?.length > 0) {
-        singerResult = await this.queryAndCreateRelatedSinger(singer);
-      } else if (singerId) {
-        singerResult = await this.singerService.model.findOne({ where: { id: singerId }, relations: ['songs'] });
-      }
-      if (singerResult.songs?.length > 0) {
-        singerResult.songs.push(song);
-      } else {
-        singerResult.songs = [song];
-      }
       // 批量更新同名歌手会触发死锁，使用redis锁解决
       const lockKey = 'singer-lock';
       if (await this.acquireLock(lockKey)) {
+        let singerResult: Singer = new Singer();
+        if (singer && singer.singerName?.length > 0) {
+          // singerName若存在，查询获取或新建Singer获取实体，更新Singer与Song关系
+          singerResult = await this.queryAndCreateRelatedSinger(singer);
+        } else if (singerId) {
+          // 否则取singerId获取Singer实体并关联Song
+          singerResult = await this.singerService.model.findOne({ where: { id: singerId }, relations: ['songs'] });
+        }
+        if (singerResult.songs?.length > 0) {
+          singerResult.songs.push(song);
+        } else {
+          singerResult.songs = [song];
+        }
         try {
           const singerVO: SingerVO = await this.singerService.update(singerResult);
           // 去除多余的songs属性
