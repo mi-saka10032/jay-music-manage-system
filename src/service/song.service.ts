@@ -221,7 +221,7 @@ export class SongService extends BaseService<Song, SongVO> {
    * 注意该方法仅对单线程环境有效，在分布式系统下还需要额外判断进程
    * @param key redisKey
    */
-  private async acquireLock(key) {
+  /*private async acquireLock(key) {
     // isLock : 1 | 0
     const isLock = await this.cacheUtil.setnx(key, Math.random().toString());
     if (isLock === 1) {
@@ -232,7 +232,7 @@ export class SongService extends BaseService<Song, SongVO> {
       await new Promise(resolve => setTimeout(resolve, 500));
       return this.acquireLock(key);
     }
-  }
+  }*/
 
   /**
    * @description 新增歌曲 newSongDTO 可能包含多种信息，因此也会去查询关联的Album和Singer并新增尚未添加的相关数据
@@ -255,30 +255,11 @@ export class SongService extends BaseService<Song, SongVO> {
         albumResult = await this.queryAndCreateRelatedAlbum(album);
       } else if (albumId) {
         // 否则取albumId获取Album实体并关联Song
-        albumResult = await this.albumService.model.findOne({ where: { id: albumId }, relations: ['songs'] });
+        albumResult = await this.albumService.model.findOne({ where: { id: albumId } });
       }
-      if (albumResult.songs?.length > 0) {
-        albumResult.songs.push(song);
-      } else {
-        albumResult.songs = [song];
-      }
-      // 批量更新同名专辑会触发死锁，使用redis锁解决
-      const lockKey = 'album-lock';
-      if (await this.acquireLock(lockKey)) {
-        try {
-          const albumVO: AlbumVO = await this.albumService.update(albumResult);
-          // 去除多余的songs属性
-          delete albumVO.songs;
-          result.album = albumVO;
-        } catch (error: any) {
-          this.logger.error(error.toString());
-        } finally {
-          // 注意释放redis锁
-          await this.cacheUtil.del(lockKey);
-        }
-      } else {
-        this.logger.warn('Could not acquire lock');
-      }
+      song.album = albumResult;
+      void super.update(song);
+      // 更新Song实体类，关联albumResult（有id即可）
     }
     if ((singer && singer.singerName?.length > 0) || singerId) {
       // singers若存在，查询获取或新建Singer获取实体，更新Singer与Song关系
@@ -288,28 +269,8 @@ export class SongService extends BaseService<Song, SongVO> {
       } else if (singerId) {
         singerResult = await this.singerService.model.findOne({ where: { id: singerId }, relations: ['songs'] });
       }
-      if (singerResult.songs?.length > 0) {
-        singerResult.songs.push(song);
-      } else {
-        singerResult.songs = [song];
-      }
-      // 批量更新同名歌手会触发死锁，使用redis锁解决
-      const lockKey = 'singer-lock';
-      if (await this.acquireLock(lockKey)) {
-        try {
-          const singerVO: SingerVO = await this.singerService.update(singerResult);
-          // 去除多余的songs属性
-          delete singerVO.songs;
-          result.singers = [singerVO];
-        } catch (error: any) {
-          this.logger.error(error.toString());
-        } finally {
-          // 注意释放redis锁
-          await this.cacheUtil.del(lockKey);
-        }
-      } else {
-        this.logger.warn('Could not acquire lock');
-      }
+      song.singers = [singerResult];
+      void super.update(song);
     }
     return result;
   }

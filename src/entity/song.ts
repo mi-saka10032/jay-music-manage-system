@@ -20,7 +20,7 @@ export class Song extends BaseEntity {
   lyric: string;
 
   @ApiProperty({ description: '播放/下载链接' })
-  @Column({ length: 512 })
+  @Column({ length: 1024 })
   musicUrl: string;
 
   @ApiProperty({ description: '发行日期' })
